@@ -11,7 +11,7 @@ mbDiscoverURL='https://auth.mediabutler.io/login/discover'
 mbClientID='MB-Client-Identifier: 4d656446-fbe7-4545-b754-1adfb8eb554e'
 mbClientIDShort='4d656446-fbe7-4545-b754-1adfb8eb554e'
 # Set initial Plex credentials status
-plexCredsStatus='ok'
+plexCredsStatus='invalid'
 # Set initial Tautulli credentials status
 tautulliURLStatus='invalid'
 tautulliAPIKeyStatus='invalid'
@@ -22,8 +22,8 @@ sonarrAPIKeyStatus='invalid'
 sonarr4kURLStatus='invalid'
 sonarr4kAPIKeyStatus='invalid'
 # Set initial Radarr credentials status
-radarrURLStatus='ok'
-radarrAPIKeyStatus='ok'
+radarrURLStatus='invalid'
+radarrAPIKeyStatus='invalid'
 # Set initial Radarr 4K credentials status
 radarr4kURLStatus='invalid'
 radarr4kAPIKeyStatus='invalid'
@@ -50,8 +50,8 @@ numberedArrRootDirsFile="${tempDir}numbered_arr_root_dirs.txt"
 sonarrConfigFile="${tempDir}sonarr_config.txt"
 sonarr4kConfigFile="${tempDir}sonarr4k_config.txt"
 radarrConfigFile="${tempDir}radarr_config.txt"
-radarr4KConfigFile="${tempDir}radarr4k_config.txt"
-radarr3DConfigFile="${tempDir}radarr3d_config.txt"
+radarr4kConfigFile="${tempDir}radarr4k_config.txt"
+radarr3dConfigFile="${tempDir}radarr3d_config.txt"
 
 # Define text colors
 readonly blu='\e[34m'
@@ -93,7 +93,7 @@ root_check() {
 
 # Function to check Bash is >=4 and, if not, exit w/ message
 check_bash() {
-  bashMajorVersion=$(bash --version |grep -v grep |grep release |awk '{print $4}' |cut -c1)
+  bashMajorVersion=$(bash --version | grep -Po 'bash, version \K\w+')
   if [ "${bashMajorVersion}" -lt '4' ]; then
     echo -e "${red}This script requires Bash v4 or higher!${endColor}"
     echo -e "${ylw}Please upgrade Bash on this system and then try again.${endColor}"
@@ -107,7 +107,7 @@ check_sed() {
   if [ "${packageManager}" = 'mac' ]; then
     sedMajorVersion=$(gsed --version |head -1 |awk '{print $4}' |cut -c1)
   else
-    sedMajorVersion=$(sed --version |head -1 |awk '{print $4}' |cut -c1)
+    sedMajorVersion=$(sed --version | grep -Po '.* \K\d+(?=(\.\d+)+)')
   fi
   if [ "${sedMajorVersion}" -lt '4' ]; then
     echo -e "${red}This script requires Sed v4 or higher!${endColor}"
@@ -357,6 +357,7 @@ get_plex_token() {
 # Function to create list of Plex servers
 create_plex_servers_list() {
   jq .servers[].name "${plexCredsFile}" |tr -d '"' > "${plexServersFile}"
+  plexServers=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'plexServers=($(cat "${plexServersFile}"))'
   for ((i = 0; i < ${#plexServers[@]}; ++i)); do
     position=$(( $i + 1 ))
@@ -512,6 +513,7 @@ radarr_menu() {
 # Function to create list of Sonarr/Radarr profiles
 create_arr_profiles_list() {
   jq .[].name "${rawArrProfilesFile}" |tr -d '"' > "${arrProfilesFile}"
+  arrProfiles=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'arrProfiles=($(cat "${arrProfilesFile}"))'
   for ((i = 0; i < ${#arrProfiles[@]}; ++i)); do
     position=$(( $i + 1 ))
@@ -535,6 +537,7 @@ prompt_for_arr_profile() {
 # Function to create list of Sonarr/Radarr root directories
 create_arr_root_dirs_list() {
   jq .[].path "${rawArrRootDirsFile}" |tr -d '"' > "${arrRootDirsFile}"
+  arrRootDirs=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'arrRootDirs=($(cat "${arrRootDirsFile}"))'
   for ((i = 0; i < ${#arrRootDirs[@]}; ++i)); do
     position=$(( $i + 1 ))
@@ -564,7 +567,7 @@ setup_sonarr() {
     echo 'Checking that the provided Sonarr URL is valid...'
     convert_url
     set +e
-    sonarrURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+    sonarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
     set -e
     while [ "${sonarrURLStatus}" = 'invalid' ]; do
       if [ "${sonarrURLCheckResponse}" = '200' ]; then
@@ -580,7 +583,7 @@ setup_sonarr() {
         echo 'Checking that the provided Sonarr URL is valid...'
         convert_url
         set +e
-        sonarrURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+        sonarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
         set -e
       fi
     done
@@ -650,7 +653,7 @@ setup_sonarr() {
     echo 'Checking that the provided Sonarr 4K URL is valid...'
     convert_url
     set +e
-    sonarr4kURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+    sonarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
     set -e
     while [ "${sonarr4kURLStatus}" = 'invalid' ]; do
       if [ "${sonarr4kURLCheckResponse}" = '200' ]; then
@@ -666,7 +669,7 @@ setup_sonarr() {
         echo 'Checking that the provided Sonarr 4k URL is valid...'
         convert_url
         set +e
-        sonarr4kURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+        sonarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
         set -e
       fi
     done
@@ -741,7 +744,7 @@ setup_radarr() {
     echo 'Checking that the provided Radarr URL is valid...'
     convert_url
     set +e
-    radarrURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+    radarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
     set -e
     while [ "${radarrURLStatus}" = 'invalid' ]; do
       if [ "${radarrURLCheckResponse}" = '200' ]; then
@@ -757,7 +760,7 @@ setup_radarr() {
         echo 'Checking that the provided Radarr URL is valid...'
         convert_url
         set +e
-        radarrURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+        radarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
         set -e
       fi
     done
@@ -827,7 +830,7 @@ setup_radarr() {
     echo 'Checking that the provided Radarr 4K URL is valid...'
     convert_url
     set +e
-    radarr4kURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+    radarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
     set -e
     while [ "${radarr4kURLStatus}" = 'invalid' ]; do
       if [ "${radarr4kURLCheckResponse}" = '200' ]; then
@@ -843,7 +846,7 @@ setup_radarr() {
         echo 'Checking that the provided Radarr 4k URL is valid...'
         convert_url
         set +e
-        radarr4kURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+        radarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
         set -e
       fi
     done
@@ -907,7 +910,91 @@ setup_radarr() {
       main_menu
     fi
   elif [ "${radarrMenuSelection}" = '3' ]; then
-    foo
+    echo 'Please enter your Radarr 3D URL (IE: http://127.0.0.1:8989/radarr/):'
+    read -r providedURL
+    echo ''
+    echo 'Checking that the provided Radarr 3D URL is valid...'
+    convert_url
+    set +e
+    radarr3dURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+    set -e
+    while [ "${radarr3dURLStatus}" = 'invalid' ]; do
+      if [ "${radarr3dURLCheckResponse}" = '200' ]; then
+        sed -i.bak "${radarr3dURLStatusLineNum} s/radarr3dURLStatus='[^']*'/radarr3dURLStatus='ok'/" "${scriptname}"
+        radarr3dURLStatus='ok'
+        echo -e "${grn}Success!${endColor}"
+        echo ''
+      elif [ "${radarr3dURLCheckResponse}" != '200' ]; then
+        echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
+        echo 'Please enter your Radarr 4k URL (IE: http://127.0.0.1:8989/radarr/):'
+        read -r providedURL
+        echo ''
+        echo 'Checking that the provided Radarr 4k URL is valid...'
+        convert_url
+        set +e
+        radarr3dURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+        set -e
+      fi
+    done
+    echo 'Please enter your Radarr 3D API key:'
+    read -r radarr3dAPIKey
+    echo ''
+    echo 'Testing that the provided Radarr 3D API Key is valid...'
+    echo ''
+    radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" |jq .[] |tr -d '"')
+    while [ "${radarr3dAPIKeyStatus}" = 'invalid' ]; do
+      if [ "${radarr3dAPITestResponse}" = 'Unauthorized' ]; then
+        echo -e "${red}Received something other than an OK response!${endColor}"
+        echo 'Please enter your Radarr 3D API Key:'
+        read -r radarr3dAPIKey
+        echo ''
+        radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" |jq .[] |tr -d '"')
+      elif [ "${radarr3dAPITestResponse}" != 'Unauthorized' ]; then
+        sed -i.bak "${radarr3dAPIKeyStatusLineNum} s/radarr3dAPIKeyStatus='[^']*'/radarr3dAPIKeyStatus='ok'/" "${scriptname}"
+        radarr3dAPIKeyStatus='ok'
+        echo -e "${grn}Success!${endColor}"
+      fi
+    done
+    curl -s -X GET "${convertedURL}api/profile" -H "X-Api-Key: ${radarr3dAPIKey}" |jq . > "${rawArrProfilesFile}"
+    create_arr_profiles_list
+    prompt_for_arr_profile
+    curl -s -X GET "${convertedURL}api/rootfolder" -H "X-Api-Key: ${radarr3dAPIKey}" |jq . > "${rawArrRootDirsFile}"
+    create_arr_root_dirs_list
+    prompt_for_arr_root_dir
+    echo 'Testing the full Radarr 3D config for MediaButler...'
+    curl -s --location --request PUT "${userMBURL}configure/radarr3d?" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "${mbClientID}" \
+    -H "Authorization: Bearer ${plexServerMBToken}" \
+    --data "url=${JSONConvertedURL}&apikey=${radarr3dAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" |jq . > "${radarr3dConfigFile}"
+    radarr3dMBConfigTestResponse=$(cat "${radarr3dConfigFile}" |jq .message |tr -d '"')
+    if [ "${radarr3dMBConfigTestResponse}" = 'success' ]; then
+      echo -e "${grn}Success!${endColor}"
+      echo ''
+      echo 'Saving the Radarr 3D config to MediaButler...'
+      curl -s --location --request POST "${userMBURL}configure/radarr3d?" \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" \
+      --data "url=${JSONConvertedURL}&apikey=${radarr3dAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" |jq . > "${radarrConfigFile}"
+      radarr3dMBConfigPostResponse=$(cat "${radarr3dConfigFile}" |jq .message |tr -d '"')
+      if [ "${radarr3dMBConfigPostResponse}" = 'success' ]; then
+        echo -e "${grn}Done! Radarr 3D has been successfully configured for${endColor}"
+        echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
+        sleep 3
+        echo ''
+        echo 'Returning you to the Main Menu...'
+        main_menu
+      elif [ "${radarr3dMBConfigPostResponse}" != 'success' ]; then
+        echo -e "${red}Config push failed! Please try again later.${endColor}"
+        sleep 3
+        main_menu
+      fi
+    elif [ "${radarr3dMBConfigTestResponse}" != 'success' ]; then
+      echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
+      sleep 3
+      main_menu
+    fi
   fi
 }
 
@@ -919,7 +1006,7 @@ setup_tautulli() {
   echo 'Checking that the provided Tautulli URL is valid...'
   convert_url
   set +e
-  tautulliURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
+  tautulliURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
   set -e
   while [ "${tautulliURLStatus}" = 'invalid' ]; do
     if [ "${tautulliURLCheckResponse}" = '200' ]; then
@@ -935,7 +1022,7 @@ setup_tautulli() {
       echo 'Checking that the provided Tautulli URL is valid...'
       convert_url
       set +e
-      tautulliURLCheckResponse=$(curl --head --write-out %{http_code} -sI --output /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
+      tautulliURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
       set -e
     fi
   done
