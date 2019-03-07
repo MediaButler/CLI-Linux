@@ -596,7 +596,7 @@ setup_sonarr() {
     sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" |jq .[] |tr -d '"')
     while [ "${sonarrAPIKeyStatus}" = 'invalid' ]; do
       if [ "${sonarrAPITestResponse}" = 'Unauthorized' ]; then
-        echo -e "${red}Received something other than an OK response!${endColor}"
+        echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Sonarr API Key:'
         read -r sonarrAPIKey
         echo ''
@@ -683,7 +683,7 @@ setup_sonarr() {
     sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" |jq .[] |tr -d '"')
     while [ "${sonarr4kAPIKeyStatus}" = 'invalid' ]; do
       if [ "${sonarr4kAPITestResponse}" = 'Unauthorized' ]; then
-        echo -e "${red}Received something other than an OK response!${endColor}"
+        echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Sonarr 4K API Key:'
         read -r sonarr4kAPIKey
         echo ''
@@ -775,7 +775,7 @@ setup_radarr() {
     radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" |jq .[] |tr -d '"')
     while [ "${radarrAPIKeyStatus}" = 'invalid' ]; do
       if [ "${radarrAPITestResponse}" = 'Unauthorized' ]; then
-        echo -e "${red}Received something other than an OK response!${endColor}"
+        echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Radarr API Key:'
         read -r radarrAPIKey
         echo ''
@@ -862,7 +862,7 @@ setup_radarr() {
     radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" |jq .[] |tr -d '"')
     while [ "${radarr4kAPIKeyStatus}" = 'invalid' ]; do
       if [ "${radarr4kAPITestResponse}" = 'Unauthorized' ]; then
-        echo -e "${red}Received something other than an OK response!${endColor}"
+        echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Radarr 4K API Key:'
         read -r radarr4kAPIKey
         echo ''
@@ -949,7 +949,7 @@ setup_radarr() {
     radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" |jq .[] |tr -d '"')
     while [ "${radarr3dAPIKeyStatus}" = 'invalid' ]; do
       if [ "${radarr3dAPITestResponse}" = 'Unauthorized' ]; then
-        echo -e "${red}Received something other than an OK response!${endColor}"
+        echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Radarr 3D API Key:'
         read -r radarr3dAPIKey
         echo ''
@@ -1045,7 +1045,7 @@ setup_tautulli() {
       echo -e "${grn}Success!${endColor}"
       echo ''
     elif [ "${tautulliAPITestResponse}" = 'Invalid apikey' ]; then
-      echo -e "${red}Received something other than an OK response!${endColor}"
+      echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
       echo 'Please enter your Tautulli API Key:'
       read -r tautulliAPIKey
       echo ''
