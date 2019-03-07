@@ -561,6 +561,7 @@ prompt_for_arr_root_dir() {
 # Function to process Sonarr configuration
 setup_sonarr() {
   if [ "${sonarrMenuSelection}" = '1' ]; then
+    mbAPIEndpoint='sonarr'
     echo 'Please enter your Sonarr URL (IE: http://127.0.0.1:8989/sonarr/):'
     read -r providedURL
     echo ''
@@ -613,7 +614,7 @@ setup_sonarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Sonarr config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/sonarr?" \
+    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -623,7 +624,7 @@ setup_sonarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Sonarr config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/sonarr?" \
+      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -647,6 +648,7 @@ setup_sonarr() {
       main_menu
     fi
   elif [ "${sonarrMenuSelection}" = '2' ]; then
+    mbAPIEndpoint='sonarr4k'
     echo 'Please enter your Sonarr 4K URL (IE: http://127.0.0.1:8989/sonarr/):'
     read -r providedURL
     echo ''
@@ -699,7 +701,7 @@ setup_sonarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Sonarr 4K config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/sonarr4k?" \
+    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -709,7 +711,7 @@ setup_sonarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Sonarr 4K config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/sonarr4k?" \
+      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -738,6 +740,7 @@ setup_sonarr() {
 # Function to process Radarr configuration
 setup_radarr() {
   if [ "${radarrMenuSelection}" = '1' ]; then
+    mbAPIEndpoint='radarr'
     echo 'Please enter your Radarr URL (IE: http://127.0.0.1:8989/radarr/):'
     read -r providedURL
     echo ''
@@ -790,7 +793,7 @@ setup_radarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Radarr config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/radarr?" \
+    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -800,7 +803,7 @@ setup_radarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/radarr?" \
+      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -824,6 +827,7 @@ setup_radarr() {
       main_menu
     fi
   elif [ "${radarrMenuSelection}" = '2' ]; then
+    mbAPIEndpoint='radarr4k'
     echo 'Please enter your Radarr 4K URL (IE: http://127.0.0.1:8989/radarr/):'
     read -r providedURL
     echo ''
@@ -876,7 +880,7 @@ setup_radarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Radarr 4K config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/radarr4k?" \
+    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -886,7 +890,7 @@ setup_radarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr 4K config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/radarr4k?" \
+      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -910,6 +914,7 @@ setup_radarr() {
       main_menu
     fi
   elif [ "${radarrMenuSelection}" = '3' ]; then
+    mbAPIEndpoint='radarr3d'
     echo 'Please enter your Radarr 3D URL (IE: http://127.0.0.1:8989/radarr/):'
     read -r providedURL
     echo ''
@@ -962,7 +967,7 @@ setup_radarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Radarr 3D config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/radarr3d?" \
+    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -972,7 +977,7 @@ setup_radarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr 3D config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/radarr3d?" \
+      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -1000,6 +1005,7 @@ setup_radarr() {
 
 # Function to process Tautulli configuration
 setup_tautulli() {
+  mbAPIEndpoint='tautulli'
   echo 'Please enter your Tautulli URL (IE: http://127.0.0.1:8181/tautulli/):'
   read -r providedURL
   echo ''
@@ -1047,7 +1053,7 @@ setup_tautulli() {
     fi
   done
   echo 'Testing the full Tautulli config for MediaButler...'
-  curl -s --location --request PUT "${userMBURL}configure/tautulli?" \
+  curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -H "${mbClientID}" \
   -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -1057,7 +1063,7 @@ setup_tautulli() {
     echo -e "${grn}Success!${endColor}"
     echo ''
     echo 'Saving the Tautulli config to MediaButler...'
-    curl -s --location --request POST "${userMBURL}configure/tautulli?" \
+    curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
