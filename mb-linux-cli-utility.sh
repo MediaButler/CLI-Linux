@@ -210,6 +210,7 @@ create_dir() {
 # Cleanup temp files
 cleanup() {
   rm -rf "${tempDir}"*.txt || true
+  rm -rf "${scriptname}".bak || true
 }
 
 # Exit the script if the user hits CTRL+C
