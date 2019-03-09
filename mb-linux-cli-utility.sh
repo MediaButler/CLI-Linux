@@ -125,36 +125,40 @@ check_sed() {
 
 # Function to determine which Package Manager to use
 package_manager() {
+  wget -q -O "${tempDir}"pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+  chmod 755 "${tempDir}"pacapt
   declare -A osInfo;
   osInfo[/etc/redhat-release]='yum -y -q'
   osInfo[/etc/arch-release]=pacman
   osInfo[/etc/gentoo-release]=emerge
   osInfo[/etc/SuSE-release]=zypp
-  osInfo[/etc/debian_version]='apt-get -y -qq'
+  osInfo[/etc/debian_version]='apt -y -qq'
   osInfo[/etc/alpine-release]='apk'
   osInfo[/System/Library/CoreServices/SystemVersion.plist]='mac'
 
   for f in "${!osInfo[@]}"
-    do
-      if [[ -f $f ]];then
-        packageManager=${osInfo[$f]}
-      fi
-    done
+  do
+    if [[ -f $f ]];then
+      packageManager=${osInfo[$f]}
+    fi
+  done
 }
 
 # Function to check if cURL is installed and, if not, install it
 check_curl() {
+  set +e
   whichCURL=$(which curl)
   if [ -z "${whichCURL}" ]; then
     echo -e "${red}cURL is not currently installed!${endColor}"
     echo -e "${ylw}Doing it for you now...${endColor}"
-    if [ "${packageManager}" = 'apk' ]; then
-      apk add --no-cache curl
-    elif [ "${packageManager}" = 'mac' ]; then
-      /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && /usr/local/bin/brew install jq
-    else
-      "${packageManager}" install curl
-    fi
+    "${tempDir}"pacapt install curl
+    #if [ "${packageManager}" = 'apk' ]; then
+    #  apk add --no-cache curl
+    #elif [ "${packageManager}" = 'mac' ]; then
+    #  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && /usr/local/bin/brew install jq
+    #else
+    #  "${packageManager}" install curl
+    #fi
   else
     :
   fi
@@ -165,21 +169,24 @@ check_curl() {
   else
     :
   fi
+  set -e
 }
 
 # Function to check if JQ is installed and, if not, install it
 check_jq() {
+  set +e
   whichJQ=$(which jq)
   if [ -z "${whichJQ}" ]; then
     echo -e "${red}JQ is not currently installed!${endColor}"
     echo -e "${ylw}Doing it for you now...${endColor}"
-    if [ "${packageManager}" = 'apk' ]; then
-      apk add --no-cache jq
-    elif [ "${packageManager}" = 'mac' ]; then
-      /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && /usr/local/bin/brew install jq
-    else
-      "${packageManager}" install jq
-    fi
+    "${tempDir}"pacapt install jq
+    #if [ "${packageManager}" = 'apk' ]; then
+    #  apk add --no-cache jq
+    #elif [ "${packageManager}" = 'mac' ]; then
+    #  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && /usr/local/bin/brew install jq
+    #else
+    #  "${packageManager}" install jq
+    #fi
   else
     :
   fi
@@ -190,6 +197,7 @@ check_jq() {
   else
     :
   fi
+  set -e
 }
 
 # Function to bundle checks
@@ -288,18 +296,21 @@ get_plex_creds() {
     echo ''
     echo ''
   elif [ "${plexCredsOption}" == '2' ]; then
-    unset plexToken
     echo 'Please enter your Plex token:'
-    while IFS= read -p "${prompt}" -r -s -n 1 char
-    do
-      if [[ "${char}" == $'\0' ]]; then
-        break
-      fi
-      prompt='*'
-      plexToken+="${char}"
-    done
+    read -rs plexToken
     echo ''
-    echo ''
+    #unset plexToken
+    #echo 'Please enter your Plex token:'
+    #while IFS= read -p "${prompt}" -r -s -n 1 char
+    #do
+    #  if [[ "${char}" == $'\0' ]]; then
+    #    break
+    #  fi
+    #  prompt='*'
+    #  plexToken+="${char}"
+    #done
+    #echo ''
+    #echo ''
   else
     echo 'You provided an invalid option, please try again.'
     exit 1
@@ -321,16 +332,19 @@ check_plex_creds() {
         echo 'Please enter your Plex username:'
         read -r plexUsername
         echo ''
-        unset plexPassword
         echo 'Please enter your Plex password:'
-        while IFS= read -p "${prompt}" -r -s -n 1 char
-        do
-          if [[ "${char}" == $'\0' ]]; then
-            break
-          fi
-          prompt='*'
-          plexPassword+="${char}"
-        done
+        read -rs plexPassword
+        echo ''
+        #unset plexPassword
+        #echo 'Please enter your Plex password:'
+        #while IFS= read -p "${prompt}" -r -s -n 1 char
+        #do
+        #  if [[ "${char}" == $'\0' ]]; then
+        #    break
+        #  fi
+        #  prompt='*'
+        #  plexPassword+="${char}"
+        #done
       elif [[ "${authResponse}" != *'BadRequest'* ]]; then
         sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
         plexCredsStatus='ok'
@@ -346,19 +360,24 @@ check_plex_creds() {
       if [[ "${authResponse}" =~ 'BadRequest' ]]; then
         echo -e "${red}The credentials that you provided are not valid!${endColor}"
         echo ''
-        unset plexToken
         echo 'Please enter your Plex token:'
-        while IFS= read -p "${prompt}" -r -s -n 1 char
-        do
-          if [[ "${char}" == $'\0' ]]; then
-            break
-          fi
-          prompt='*'
-          plexToken+="${char}"
-        done
+        read -rs plexToken
+        echo ''
+        #unset plexToken
+        #echo 'Please enter your Plex token:'
+        #while IFS= read -p "${prompt}" -r -s -n 1 char
+        #do
+        #  if [[ "${char}" == $'\0' ]]; then
+        #    break
+        #  fi
+        #  prompt='*'
+        #  plexToken+="${char}"
+        #done
       elif [[ "${authResponse}" != *'BadRequest'* ]]; then
         sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
         plexCredsStatus='ok'
+        echo -e "${grn}Success!${endColor}"
+        echo ''
       fi
     fi
   done
@@ -382,7 +401,7 @@ get_plex_token() {
 
 # Function to create list of Plex servers
 create_plex_servers_list() {
-  jq .servers[].name "${plexCredsFile}" |tr -d '"' > "${plexServersFile}"
+  jq '.servers[] | select(.owner==true)' "${plexCredsFile}" |jq .name |tr -d '"' > "${plexServersFile}"
   plexServers=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'plexServers=($(cat "${plexServersFile}"))'
   for ((i = 0; i < ${#plexServers[@]}; ++i)); do
@@ -398,7 +417,14 @@ prompt_for_plex_server() {
   echo ''
   cat "${numberedPlexServersFile}"
   echo ''
-  read -p "Server (1-${numberOfOptions}): " plexServerSelection
+  #read -p "Server (1-${numberOfOptions}): " plexServerSelection
+  read -p "Server: " plexServerSelection
+  if [[ "${plexServerSelection}" -lt '1' ]] || [[ "${plexServerSelection}" -gt "${numberOfOptions}" ]]; then
+    echo -e "${red}You did not specify a valid option!${endColor}"
+    prompt_for_plex_server
+  else
+    :
+  fi
   echo ''
   echo 'Gathering required information...'
   plexServerArrayElement=$((${plexServerSelection}-1))
@@ -701,35 +727,40 @@ setup_sonarr() {
         set -e
       fi
     done
-    unset sonarrAPIKey
     echo 'Please enter your Sonarr API key:'
-    while IFS= read -p "${prompt}" -r -s -n 1 char
-    do
-      if [[ "${char}" == $'\0' ]]; then
-        break
-      fi
-      prompt='*'
-      sonarrAPIKey+="${char}"
-    done
+    read -rs sonarrAPIKey
     echo ''
-    echo ''
+    #unset sonarrAPIKey
+    #echo 'Please enter your Sonarr API key:'
+    #while IFS= read -p "${prompt}" -r -s -n 1 char
+    #do
+    #  if [[ "${char}" == $'\0' ]]; then
+    #    break
+    #  fi
+    #  prompt='*'
+    #  sonarrAPIKey+="${char}"
+    #done
+    #echo ''
+    #echo ''
     echo 'Testing that the provided Sonarr API Key is valid...'
     echo ''
     sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" |jq .[] |tr -d '"')
     while [ "${sonarrAPIKeyStatus}" = 'invalid' ]; do
       if [ "${sonarrAPITestResponse}" = 'Unauthorized' ]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
-        unset sonarrAPIKey
         echo 'Please enter your Sonarr API key:'
-        while IFS= read -p "${prompt}" -r -s -n 1 char
-        do
-          if [[ "${char}" == $'\0' ]]; then
-            break
-          fi
-          prompt='*'
-          sonarrAPIKey+="${char}"
-        done
-        echo ''
+        read -rs sonarrAPIKey
+        #unset sonarrAPIKey
+        #echo 'Please enter your Sonarr API key:'
+        #while IFS= read -p "${prompt}" -r -s -n 1 char
+        #do
+        #  if [[ "${char}" == $'\0' ]]; then
+        #    break
+        #  fi
+        #  prompt='*'
+        #  sonarrAPIKey+="${char}"
+        #done
+        #echo ''
         echo ''
         sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" |jq .[] |tr -d '"')
       elif [ "${sonarrAPITestResponse}" != 'Unauthorized' ]; then
@@ -834,34 +865,40 @@ setup_sonarr() {
         set -e
       fi
     done
-    unset sonarr4kAPIKey
     echo 'Please enter your Sonarr 4K API key:'
-    while IFS= read -p "${prompt}" -r -s -n 1 char
-    do
-      if [[ "${char}" == $'\0' ]]; then
-        break
-      fi
-      prompt='*'
-      sonarr4kAPIKey+="${char}"
-    done
+    read -rs sonarr4kAPIKey
     echo ''
-    echo ''
+    #unset sonarr4kAPIKey
+    #echo 'Please enter your Sonarr 4K API key:'
+    #while IFS= read -p "${prompt}" -r -s -n 1 char
+    #do
+    #  if [[ "${char}" == $'\0' ]]; then
+    #    break
+    #  fi
+    #  prompt='*'
+    #  sonarr4kAPIKey+="${char}"
+    #done
+    #echo ''
+    #echo ''
     echo 'Testing that the provided Sonarr 4K API Key is valid...'
     echo ''
     sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" |jq .[] |tr -d '"')
     while [ "${sonarr4kAPIKeyStatus}" = 'invalid' ]; do
       if [ "${sonarr4kAPITestResponse}" = 'Unauthorized' ]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
-        unset sonarr4kAPIKey
         echo 'Please enter your Sonarr 4K API key:'
-        while IFS= read -p "${prompt}" -r -s -n 1 char
-        do
-          if [[ "${char}" == $'\0' ]]; then
-            break
-          fi
-          prompt='*'
-          sonarr4kAPIKey+="${char}"
-        done
+        read -rs sonarr4kAPIKey
+        echo ''
+        #unset sonarr4kAPIKey
+        #echo 'Please enter your Sonarr 4K API key:'
+        #while IFS= read -p "${prompt}" -r -s -n 1 char
+        #do
+        #  if [[ "${char}" == $'\0' ]]; then
+        #    break
+        #  fi
+        #  prompt='*'
+        #  sonarr4kAPIKey+="${char}"
+        #done
         echo ''
         echo ''
         sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" |jq .[] |tr -d '"')
@@ -972,36 +1009,42 @@ setup_radarr() {
         set -e
       fi
     done
-    unset radarrAPIKey
     echo 'Please enter your Radarr API key:'
-    while IFS= read -p "${prompt}" -r -s -n 1 char
-    do
-      if [[ "${char}" == $'\0' ]]; then
-        break
-      fi
-      prompt='*'
-      radarrAPIKey+="${char}"
-    done
+    read -rs radarrAPIKey
     echo ''
-    echo ''
+    #unset radarrAPIKey
+    #echo 'Please enter your Radarr API key:'
+    #while IFS= read -p "${prompt}" -r -s -n 1 char
+    #do
+    #  if [[ "${char}" == $'\0' ]]; then
+    #    break
+    #  fi
+    #  prompt='*'
+    #  radarrAPIKey+="${char}"
+    #done
+    #echo ''
+    #echo ''
     echo 'Testing that the provided Radarr API Key is valid...'
     echo ''
     radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" |jq .[] |tr -d '"')
     while [ "${radarrAPIKeyStatus}" = 'invalid' ]; do
       if [ "${radarrAPITestResponse}" = 'Unauthorized' ]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
-        unset radarrAPIKey
         echo 'Please enter your Radarr API key:'
-        while IFS= read -p "${prompt}" -r -s -n 1 char
-        do
-          if [[ "${char}" == $'\0' ]]; then
-            break
-          fi
-          prompt='*'
-          radarrAPIKey+="${char}"
-        done
+        read -rs radarrAPIKey
         echo ''
-        echo ''
+        #unset radarrAPIKey
+        #echo 'Please enter your Radarr API key:'
+        #while IFS= read -p "${prompt}" -r -s -n 1 char
+        #do
+        #  if [[ "${char}" == $'\0' ]]; then
+        #    break
+        #  fi
+        #  prompt='*'
+        #  radarrAPIKey+="${char}"
+        #done
+        #echo ''
+        #echo ''
         radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" |jq .[] |tr -d '"')
       elif [ "${radarrAPITestResponse}" != 'Unauthorized' ]; then
         sed -i.bak "${radarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
@@ -1105,34 +1148,40 @@ setup_radarr() {
         set -e
       fi
     done
-    unset radarr4kAPIKey
     echo 'Please enter your Radarr 4K API key:'
-    while IFS= read -p "${prompt}" -r -s -n 1 char
-    do
-      if [[ "${char}" == $'\0' ]]; then
-        break
-      fi
-      prompt='*'
-      radarr4kAPIKey+="${char}"
-    done
+    read -rs radarr4kAPIKey
     echo ''
-    echo ''
+    #unset radarr4kAPIKey
+    #echo 'Please enter your Radarr 4K API key:'
+    #while IFS= read -p "${prompt}" -r -s -n 1 char
+    #do
+    #  if [[ "${char}" == $'\0' ]]; then
+    #    break
+    #  fi
+    #  prompt='*'
+    #  radarr4kAPIKey+="${char}"
+    #done
+    #echo ''
+    #echo ''
     echo 'Testing that the provided Radarr 4K API Key is valid...'
     echo ''
     radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" |jq .[] |tr -d '"')
     while [ "${radarr4kAPIKeyStatus}" = 'invalid' ]; do
       if [ "${radarr4kAPITestResponse}" = 'Unauthorized' ]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
-        unset radarr4kAPIKey
         echo 'Please enter your Radarr 4K API key:'
-        while IFS= read -p "${prompt}" -r -s -n 1 char
-        do
-          if [[ "${char}" == $'\0' ]]; then
-            break
-          fi
-          prompt='*'
-          radarr4kAPIKey+="${char}"
-        done
+        read -rs radarr4kAPIKey
+        echo ''
+        #unset radarr4kAPIKey
+        #echo 'Please enter your Radarr 4K API key:'
+        #while IFS= read -p "${prompt}" -r -s -n 1 char
+        #do
+        #  if [[ "${char}" == $'\0' ]]; then
+        #    break
+        #  fi
+        #  prompt='*'
+        #  radarr4kAPIKey+="${char}"
+        #done
         echo ''
         echo ''
         radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" |jq .[] |tr -d '"')
@@ -1238,36 +1287,42 @@ setup_radarr() {
         set -e
       fi
     done
-    unset radarr3dAPIKey
     echo 'Please enter your Radarr 3D API key:'
-    while IFS= read -p "${prompt}" -r -s -n 1 char
-    do
-      if [[ "${char}" == $'\0' ]]; then
-        break
-      fi
-      prompt='*'
-      radarr3dAPIKey+="${char}"
-    done
+    read -rs radarr3dAPIKey
     echo ''
-    echo ''
+    #unset radarr3dAPIKey
+    #echo 'Please enter your Radarr 3D API key:'
+    #while IFS= read -p "${prompt}" -r -s -n 1 char
+    #do
+    #  if [[ "${char}" == $'\0' ]]; then
+    #    break
+    #  fi
+    #  prompt='*'
+    #  radarr3dAPIKey+="${char}"
+    #done
+    #echo ''
+    #echo ''
     echo 'Testing that the provided Radarr 3D API Key is valid...'
     echo ''
     radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" |jq .[] |tr -d '"')
     while [ "${radarr3dAPIKeyStatus}" = 'invalid' ]; do
       if [ "${radarr3dAPITestResponse}" = 'Unauthorized' ]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
-        unset radarr3dAPIKey
         echo 'Please enter your Radarr 3D API key:'
-        while IFS= read -p "${prompt}" -r -s -n 1 char
-        do
-          if [[ "${char}" == $'\0' ]]; then
-            break
-          fi
-          prompt='*'
-          radarr3dAPIKey+="${char}"
-        done
+        read -rs radarr3dAPIKey
         echo ''
-        echo ''
+        #unset radarr3dAPIKey
+        #echo 'Please enter your Radarr 3D API key:'
+        #while IFS= read -p "${prompt}" -r -s -n 1 char
+        #do
+        #  if [[ "${char}" == $'\0' ]]; then
+        #    break
+        #  fi
+        #  prompt='*'
+        #  radarr3dAPIKey+="${char}"
+        #done
+        #echo ''
+        #echo ''
         radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" |jq .[] |tr -d '"')
       elif [ "${radarr3dAPITestResponse}" != 'Unauthorized' ]; then
         sed -i.bak "${radarr3dAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
@@ -1375,18 +1430,21 @@ setup_tautulli() {
       set -e
     fi
   done
-  unset tautulliAPIKey
   echo 'Please enter your Tautulli API key:'
-  while IFS= read -p "${prompt}" -r -s -n 1 char
-  do
-    if [[ "${char}" == $'\0' ]]; then
-      break
-    fi
-    prompt='*'
-    tautulliAPIKey+="${char}"
-  done
+  read -rs tautulliAPIKey
   echo ''
-  echo ''
+  #unset tautulliAPIKey
+  #echo 'Please enter your Tautulli API key:'
+  #while IFS= read -p "${prompt}" -r -s -n 1 char
+  #do
+  #  if [[ "${char}" == $'\0' ]]; then
+  #    break
+  #  fi
+  #  prompt='*'
+  #  tautulliAPIKey+="${char}"
+  #done
+  #echo ''
+  #echo ''
   echo 'Testing that the provided Tautulli API Key is valid...'
   echo ''
   tautulliAPITestResponse=$(curl -s "${convertedURL}api/v2?apikey=${tautulliAPIKey}&cmd=arnold" |jq .response.message |tr -d '"')
@@ -1398,18 +1456,21 @@ setup_tautulli() {
       echo ''
     elif [ "${tautulliAPITestResponse}" = 'Invalid apikey' ]; then
       echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
-      unset tautulliAPIKey
       echo 'Please enter your Tautulli API key:'
-      while IFS= read -p "${prompt}" -r -s -n 1 char
-      do
-        if [[ "${char}" == $'\0' ]]; then
-          break
-        fi
-        prompt='*'
-        tautulliAPIKey+="${char}"
-      done
+      read -rs tautulliAPIKey
       echo ''
-      echo ''
+      #unset tautulliAPIKey
+      #echo 'Please enter your Tautulli API key:'
+      #while IFS= read -p "${prompt}" -r -s -n 1 char
+      #do
+      #  if [[ "${char}" == $'\0' ]]; then
+      #    break
+      #  fi
+      #  prompt='*'
+      #  tautulliAPIKey+="${char}"
+      #done
+      #echo ''
+      #echo ''
       tautulliAPITestResponse=$(curl -s "${convertedURL}api/v2?apikey=${tautulliAPIKey}&cmd=arnold" |jq .response.message |tr -d '"')
     fi
   done
@@ -1451,8 +1512,8 @@ setup_tautulli() {
 
 # Main function to run all functions
 main() {
-  checks
   create_dir
+  checks
   get_line_numbers
   if [[ -e "${plexCredsFile}" ]]; then
     sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
