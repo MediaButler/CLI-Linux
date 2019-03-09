@@ -243,7 +243,7 @@ reset(){
   echo -e "${red}**WARNING!!!** This will reset ALL setup progress!${endColor}"
   echo -e "${ylw}Do you wish to continue?${endColor}"
   echo ''
-  echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o):"
+  echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
   read -r resetConfirmation
   echo ''
   if ! [[ "${resetConfirmation}" =~ ^(yes|y|no|n)$ ]]; then
@@ -414,7 +414,7 @@ prompt_for_plex_server() {
   echo 'Is this the correct MediaButler URL?'
   echo -e "${ylw}${userMBURL}${endColor}"
   echo ''
-  echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o):"
+  echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
   read -r mbURLConfirmation
   echo ''
   if ! [[ "${mbURLConfirmation}" =~ ^(yes|y|no|n)$ ]]; then
@@ -431,11 +431,31 @@ prompt_for_plex_server() {
   echo "${plexServerMBToken}" > "${plexServerMBTokenFile}"
 }
 
+# Function to check if endpoints are already configured
+check_endpoints() {
+  mbEndpoints=(tautulli sonarr sonarr4k radarr radarr4k radarr3d)
+  for endpoint in "${mbEndpoints[@]}"; do
+    endpointStatus=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
+    -H 'Content-Type: application/x-www-form-urlencoded' \
+    -H "${mbClientID}" \
+    -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+    checkURLStatusVar=${endpoint}'URLStatus'
+    checkAPIStatusVar=${endpoint}'APIStatus'
+    endpointConfiguredVar=${endpoint}'Configured'
+    if [[ "${!checkURLStatusVar}" = 'ok' ]] && [[ "${!checkAPIStatusVar}" = 'ok' ]] && [[ "${endpointStatus}" != '{}' ]]; then
+      declare -g "$(echo "${endpointConfiguredVar}")"='true'
+    elif [[ "${!checkURLStatusVar}" = 'invalid' ]] || [[ "${!checkAPIStatusVar}" = 'invalid' ]] || [[ "${endpointStatus}" = '{}' ]]; then
+      declare -g "$(echo "${endpointConfiguredVar}")"='false'
+    fi
+    endpointURL="configure/${endpoint}"
+  done
+}
+
 # Function to exit the menu
 exit_menu() {
   echo -e "${red}This will exit the program and any unfinished config setup will be lost.${endColor}"
   echo -e "${ylw}Are you sure you wish to exit?${endColor}"
-  echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o):"
+  echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
   read -r exitPrompt
   if ! [[ "${exitPrompt}" =~ ^(yes|y|no|n)$ ]]; then
     echo -e "${red}Please specify yes, y, no, or n.${endColor}"
@@ -496,8 +516,16 @@ sonarr_menu() {
   echo 'Please choose which version of Sonarr you'
   echo 'would like to configure for MediaButler: '
   echo ''
-  echo '1) Sonarr'
-  echo '2) Sonarr 4K'
+  if [[ "${sonarrURLStatus}" = 'ok' ]] && [[ "${sonarrAPIKeyStatus}" = 'ok' ]]; then
+    echo -e "1) ${grn}Sonarr${endColor}"
+  else
+    echo -e "1) ${red}Sonarr${endColor}"
+  fi
+  if [[ "${sonarr4kURLStatus}" = 'ok' ]] && [[ "${sonarr4kAPIKeyStatus}" = 'ok' ]]; then
+    echo -e "2) ${grn}Sonarr 4K${endColor}"
+  else
+    echo -e "2) ${red}Sonarr 4K${endColor}"
+  fi
   echo '3) Back to Main Menu'
   echo ''
   read -rp 'Selection: ' sonarrMenuSelection
@@ -520,9 +548,21 @@ radarr_menu() {
   echo 'Please choose which version of Radarr you'
   echo 'would like to configure for MediaButler: '
   echo ''
-  echo '1) Radarr'
-  echo '2) Radarr 4K'
-  echo '3) Radarr 3D'
+  if [[ "${radarrURLStatus}" = 'ok' ]] && [[ "${radarrAPIKeyStatus}" = 'ok' ]]; then
+    echo -e "1) ${grn}Radarr${endColor}"
+  else
+    echo -e "1) ${red}Radarr${endColor}"
+  fi
+  if [[ "${radarr4kURLStatus}" = 'ok' ]] && [[ "${radarr4kAPIKeyStatus}" = 'ok' ]]; then
+    echo -e "2) ${grn}Radarr 4K${endColor}"
+  else
+    echo -e "2) ${red}Radarr 4K${endColor}"
+  fi
+  if [[ "${radarr3dURLStatus}" = 'ok' ]] && [[ "${radarr3dAPIKeyStatus}" = 'ok' ]]; then
+    echo -e "3) ${grn}Radarr 3D${endColor}"
+  else
+    echo -e "3) ${red}Radarr 3D${endColor}"
+  fi
   echo '4) Back to Main Menu'
   echo ''
   read -rp 'Selection: ' radarrMenuSelection
@@ -588,7 +628,51 @@ prompt_for_arr_root_dir() {
 # Function to process Sonarr configuration
 setup_sonarr() {
   if [ "${sonarrMenuSelection}" = '1' ]; then
-    mbAPIEndpoint='sonarr'
+    endpoint='sonarr'
+    if [[ "${sonarrURLStatus}" = 'ok' ]] && [[ "${sonarrAPIKeyStatus}" = 'ok' ]]; then
+      sonarrSetupCheck=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
+      -H 'Content-Type: application/x-www-form-urlencoded' \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+      if [ "${sonarrSetupCheck}" != '{}' ]; then
+        echo -e "${red}Sonarr appears to be setup already!${endColor}"
+        echo -e "${ylw}Do you wish to continue?${endColor}"
+        echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
+        read -r continuePrompt
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+          echo -e "${red}Please specify yes, y, no, or n.${endColor}"
+        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+          sed -i.bak "${sonarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
+          sonarrURLStatus='invalid'
+          sed -i.bak "${sonarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
+          sonarrAPIKeyStatus='invalid'
+        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+          sonarr_menu
+        fi
+      elif [ "${sonarrSetupCheck}" = '{}' ]; then
+        :
+      fi
+    elif [[ "${sonarrURLStatus}" = 'invalid' ]] || [[ "${sonarrAPIKeyStatus}" = 'invalid' ]]; then
+      :
+    fi
+    #if [ "${sonarrConfigured}" = 'true' ]; then
+    #  echo -e "${red}Sonarr appears to be setup already!${endColor}"
+    #  echo -e "${ylw}Do you wish to continue?${endColor}"
+    #  echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
+    #  read -r continuePrompt
+    #  if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+    #    echo -e "${red}Please specify yes, y, no, or n.${endColor}"
+    #  elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+    #    sed -i.bak "${sonarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
+    #    sonarrURLStatus='invalid'
+    #    sed -i.bak "${sonarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
+    #    sonarrAPIKeyStatus='invalid'
+    #  elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+    #    sonarr_menu
+    #  fi
+    #elif [ "${sonarrConfigured}" = 'false' ]; then
+    #  :
+    #fi
     echo 'Please enter your Sonarr URL (IE: http://127.0.0.1:8989/sonarr/):'
     read -r providedURL
     echo ''
@@ -600,7 +684,7 @@ setup_sonarr() {
     set -e
     while [ "${sonarrURLStatus}" = 'invalid' ]; do
       if [ "${sonarrURLCheckResponse}" = '200' ]; then
-        sed -i.bak "${sonarrURLStatusLineNum} s/sonarrURLStatus='[^']*'/sonarrURLStatus='ok'/" "${scriptname}"
+        sed -i.bak "${sonarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         sonarrURLStatus='ok'
         echo -e "${grn}Success!${endColor}"
         echo ''
@@ -649,7 +733,7 @@ setup_sonarr() {
         echo ''
         sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" |jq .[] |tr -d '"')
       elif [ "${sonarrAPITestResponse}" != 'Unauthorized' ]; then
-        sed -i.bak "${sonarrAPIKeyStatusLineNum} s/sonarrAPIKeyStatus='[^']*'/sonarrAPIKeyStatus='ok'/" "${scriptname}"
+        sed -i.bak "${sonarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         sonarrAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
       fi
@@ -661,7 +745,7 @@ setup_sonarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Sonarr config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
+    curl -s --location --request PUT "${userMBURL}configure/${endpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -671,7 +755,7 @@ setup_sonarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Sonarr config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
+      curl -s --location --request POST "${userMBURL}configure/${endpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -695,7 +779,33 @@ setup_sonarr() {
       main_menu
     fi
   elif [ "${sonarrMenuSelection}" = '2' ]; then
-    mbAPIEndpoint='sonarr4k'
+    endpoint='sonarr4k'
+    if [[ "${sonarr4kURLStatus}" = 'ok' ]] && [[ "${sonarr4kAPIKeyStatus}" = 'ok' ]]; then
+      sonarr4kSetupCheck=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
+      -H 'Content-Type: application/x-www-form-urlencoded' \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+      if [ "${sonarr4kSetupCheck}" != '{}' ]; then
+        echo -e "${red}Sonarr 4K appears to be setup already!${endColor}"
+        echo -e "${ylw}Do you wish to continue?${endColor}"
+        echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
+        read -r continuePrompt
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+          echo -e "${red}Please specify yes, y, no, or n.${endColor}"
+        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+          sed -i.bak "${sonarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
+          sonarr4kURLStatus='invalid'
+          sed -i.bak "${sonarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
+          sonarr4kAPIKeyStatus='invalid'
+        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+          sonarr_menu
+        fi
+      elif [ "${sonarr4kSetupCheck}" = '{}' ]; then
+        :
+      fi
+    elif [[ "${sonarr4kURLStatus}" = 'invalid' ]] || [[ "${sonarr4kAPIKeyStatus}" = 'invalid' ]]; then
+      :
+    fi
     echo 'Please enter your Sonarr 4K URL (IE: http://127.0.0.1:8989/sonarr/):'
     read -r providedURL
     echo ''
@@ -707,7 +817,7 @@ setup_sonarr() {
     set -e
     while [ "${sonarr4kURLStatus}" = 'invalid' ]; do
       if [ "${sonarr4kURLCheckResponse}" = '200' ]; then
-        sed -i.bak "${sonarr4kURLStatusLineNum} s/sonarr4kURLStatus='[^']*'/sonarr4kURLStatus='ok'/" "${scriptname}"
+        sed -i.bak "${sonarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         sonarr4kURLStatus='ok'
         echo -e "${grn}Success!${endColor}"
         echo ''
@@ -756,7 +866,7 @@ setup_sonarr() {
         echo ''
         sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" |jq .[] |tr -d '"')
       elif [ "${sonarr4kAPITestResponse}" != 'Unauthorized' ]; then
-        sed -i.bak "${sonarr4kAPIKeyStatusLineNum} s/sonarr4kAPIKeyStatus='[^']*'/sonarr4kAPIKeyStatus='ok'/" "${scriptname}"
+        sed -i.bak "${sonarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         sonarr4kAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
       fi
@@ -768,7 +878,7 @@ setup_sonarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Sonarr 4K config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
+    curl -s --location --request PUT "${userMBURL}configure/${endpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -778,7 +888,7 @@ setup_sonarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Sonarr 4K config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
+      curl -s --location --request POST "${userMBURL}configure/${endpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -807,7 +917,33 @@ setup_sonarr() {
 # Function to process Radarr configuration
 setup_radarr() {
   if [ "${radarrMenuSelection}" = '1' ]; then
-    mbAPIEndpoint='radarr'
+    endpoint='radarr'
+    if [[ "${radarrURLStatus}" = 'ok' ]] && [[ "${radarrAPIKeyStatus}" = 'ok' ]]; then
+      radarrSetupCheck=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
+      -H 'Content-Type: application/x-www-form-urlencoded' \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+      if [ "${radarrSetupCheck}" != '{}' ]; then
+        echo -e "${red}Radarr appears to be setup already!${endColor}"
+        echo -e "${ylw}Do you wish to continue?${endColor}"
+        echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
+        read -r continuePrompt
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+          echo -e "${red}Please specify yes, y, no, or n.${endColor}"
+        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+          sed -i.bak "${radarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
+          radarrURLStatus='invalid'
+          sed -i.bak "${radarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
+          radarrAPIKeyStatus='invalid'
+        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+          radarr_menu
+        fi
+      elif [ "${radarrSetupCheck}" = '{}' ]; then
+        :
+      fi
+    elif [[ "${radarrURLStatus}" = 'invalid' ]] || [[ "${radarrAPIKeyStatus}" = 'invalid' ]]; then
+      :
+    fi
     echo 'Please enter your Radarr URL (IE: http://127.0.0.1:8989/radarr/):'
     read -r providedURL
     echo ''
@@ -819,7 +955,7 @@ setup_radarr() {
     set -e
     while [ "${radarrURLStatus}" = 'invalid' ]; do
       if [ "${radarrURLCheckResponse}" = '200' ]; then
-        sed -i.bak "${radarrURLStatusLineNum} s/radarrURLStatus='[^']*'/radarrURLStatus='ok'/" "${scriptname}"
+        sed -i.bak "${radarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         radarrURLStatus='ok'
         echo -e "${grn}Success!${endColor}"
         echo ''
@@ -868,7 +1004,7 @@ setup_radarr() {
         echo ''
         radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" |jq .[] |tr -d '"')
       elif [ "${radarrAPITestResponse}" != 'Unauthorized' ]; then
-        sed -i.bak "${radarrAPIKeyStatusLineNum} s/radarrAPIKeyStatus='[^']*'/radarrAPIKeyStatus='ok'/" "${scriptname}"
+        sed -i.bak "${radarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         radarrAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
       fi
@@ -880,7 +1016,7 @@ setup_radarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Radarr config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
+    curl -s --location --request PUT "${userMBURL}configure/${endpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -890,7 +1026,7 @@ setup_radarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
+      curl -s --location --request POST "${userMBURL}configure/${endpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -914,7 +1050,33 @@ setup_radarr() {
       main_menu
     fi
   elif [ "${radarrMenuSelection}" = '2' ]; then
-    mbAPIEndpoint='radarr4k'
+    endpoint='radarr4k'
+    if [[ "${radarr4kURLStatus}" = 'ok' ]] && [[ "${radarr4kAPIKeyStatus}" = 'ok' ]]; then
+      radarr4kSetupCheck=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
+      -H 'Content-Type: application/x-www-form-urlencoded' \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+      if [ "${radarr4kSetupCheck}" != '{}' ]; then
+        echo -e "${red}Radarr 4K appears to be setup already!${endColor}"
+        echo -e "${ylw}Do you wish to continue?${endColor}"
+        echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
+        read -r continuePrompt
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+          echo -e "${red}Please specify yes, y, no, or n.${endColor}"
+        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+          sed -i.bak "${radarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
+          radarr4kURLStatus='invalid'
+          sed -i.bak "${radarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
+          radarr4kAPIKeyStatus='invalid'
+        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+          radarr4k_menu
+        fi
+      elif [ "${radarr4kSetupCheck}" = '{}' ]; then
+        :
+      fi
+    elif [[ "${radarr4kURLStatus}" = 'invalid' ]] || [[ "${radarr4kAPIKeyStatus}" = 'invalid' ]]; then
+      :
+    fi
     echo 'Please enter your Radarr 4K URL (IE: http://127.0.0.1:8989/radarr/):'
     read -r providedURL
     echo ''
@@ -926,7 +1088,7 @@ setup_radarr() {
     set -e
     while [ "${radarr4kURLStatus}" = 'invalid' ]; do
       if [ "${radarr4kURLCheckResponse}" = '200' ]; then
-        sed -i.bak "${radarr4kURLStatusLineNum} s/radarr4kURLStatus='[^']*'/radarr4kURLStatus='ok'/" "${scriptname}"
+        sed -i.bak "${radarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         radarr4kURLStatus='ok'
         echo -e "${grn}Success!${endColor}"
         echo ''
@@ -975,7 +1137,7 @@ setup_radarr() {
         echo ''
         radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" |jq .[] |tr -d '"')
       elif [ "${radarr4kAPITestResponse}" != 'Unauthorized' ]; then
-        sed -i.bak "${radarr4kAPIKeyStatusLineNum} s/radarr4kAPIKeyStatus='[^']*'/radarr4kAPIKeyStatus='ok'/" "${scriptname}"
+        sed -i.bak "${radarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         radarr4kAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
       fi
@@ -987,7 +1149,7 @@ setup_radarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Radarr 4K config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
+    curl -s --location --request PUT "${userMBURL}configure/${endpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -997,7 +1159,7 @@ setup_radarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr 4K config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
+      curl -s --location --request POST "${userMBURL}configure/${endpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -1021,7 +1183,33 @@ setup_radarr() {
       main_menu
     fi
   elif [ "${radarrMenuSelection}" = '3' ]; then
-    mbAPIEndpoint='radarr3d'
+    endpoint='radarr3d'
+    if [[ "${radarr3dURLStatus}" = 'ok' ]] && [[ "${radarr3dAPIKeyStatus}" = 'ok' ]]; then
+      radarr3dSetupCheck=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
+      -H 'Content-Type: application/x-www-form-urlencoded' \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+      if [ "${radarr3dSetupCheck}" != '{}' ]; then
+        echo -e "${red}Radarr 3D appears to be setup already!${endColor}"
+        echo -e "${ylw}Do you wish to continue?${endColor}"
+        echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
+        read -r continuePrompt
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+          echo -e "${red}Please specify yes, y, no, or n.${endColor}"
+        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+          sed -i.bak "${radarr3dURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
+          radarr3dURLStatus='invalid'
+          sed -i.bak "${radarr3dAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
+          radarr3dAPIKeyStatus='invalid'
+        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+          radarr3d_menu
+        fi
+      elif [ "${radarr3dSetupCheck}" = '{}' ]; then
+        :
+      fi
+    elif [[ "${radarr3dURLStatus}" = 'invalid' ]] || [[ "${radarr3dAPIKeyStatus}" = 'invalid' ]]; then
+      :
+    fi
     echo 'Please enter your Radarr 3D URL (IE: http://127.0.0.1:8989/radarr/):'
     read -r providedURL
     echo ''
@@ -1033,7 +1221,7 @@ setup_radarr() {
     set -e
     while [ "${radarr3dURLStatus}" = 'invalid' ]; do
       if [ "${radarr3dURLCheckResponse}" = '200' ]; then
-        sed -i.bak "${radarr3dURLStatusLineNum} s/radarr3dURLStatus='[^']*'/radarr3dURLStatus='ok'/" "${scriptname}"
+        sed -i.bak "${radarr3dURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         radarr3dURLStatus='ok'
         echo -e "${grn}Success!${endColor}"
         echo ''
@@ -1082,7 +1270,7 @@ setup_radarr() {
         echo ''
         radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" |jq .[] |tr -d '"')
       elif [ "${radarr3dAPITestResponse}" != 'Unauthorized' ]; then
-        sed -i.bak "${radarr3dAPIKeyStatusLineNum} s/radarr3dAPIKeyStatus='[^']*'/radarr3dAPIKeyStatus='ok'/" "${scriptname}"
+        sed -i.bak "${radarr3dAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         radarr3dAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
       fi
@@ -1094,7 +1282,7 @@ setup_radarr() {
     create_arr_root_dirs_list
     prompt_for_arr_root_dir
     echo 'Testing the full Radarr 3D config for MediaButler...'
-    curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
+    curl -s --location --request PUT "${userMBURL}configure/${endpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -1104,7 +1292,7 @@ setup_radarr() {
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr 3D config to MediaButler...'
-      curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
+      curl -s --location --request POST "${userMBURL}configure/${endpoint}?" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -1132,7 +1320,33 @@ setup_radarr() {
 
 # Function to process Tautulli configuration
 setup_tautulli() {
-  mbAPIEndpoint='tautulli'
+  endpoint='tautulli'
+  if [[ "${tautulliURLStatus}" = 'ok' ]] && [[ "${tautulliAPIKeyStatus}" = 'ok' ]]; then
+    tautulliSetupCheck=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
+    -H 'Content-Type: application/x-www-form-urlencoded' \
+    -H "${mbClientID}" \
+    -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+    if [ "${tautulliSetupCheck}" != '{}' ]; then
+      echo -e "${red}Tautulli appears to be setup already!${endColor}"
+      echo -e "${ylw}Do you wish to continue?${endColor}"
+      echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
+      read -r continuePrompt
+      if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+        echo -e "${red}Please specify yes, y, no, or n.${endColor}"
+      elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+        sed -i.bak "${tautulliURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
+        tautulliURLStatus='invalid'
+        sed -i.bak "${tautulliAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
+        tautulliAPIKeyStatus='invalid'
+      elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+        main_menu
+      fi
+    elif [ "${tautulliSetupCheck}" = '{}' ]; then
+      :
+    fi
+  elif [[ "${tautulliURLStatus}" = 'invalid' ]] || [[ "${tautulliAPIKeyStatus}" = 'invalid' ]]; then
+    :
+  fi
   echo 'Please enter your Tautulli URL (IE: http://127.0.0.1:8181/tautulli/):'
   read -r providedURL
   echo ''
@@ -1144,7 +1358,7 @@ setup_tautulli() {
   set -e
   while [ "${tautulliURLStatus}" = 'invalid' ]; do
     if [ "${tautulliURLCheckResponse}" = '200' ]; then
-      sed -i.bak "${tautulliURLStatusLineNum} s/tautulliURLStatus='[^']*'/tautulliURLStatus='ok'/" "${scriptname}"
+      sed -i.bak "${tautulliURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
       tautulliURLStatus='ok'
       echo -e "${grn}Success!${endColor}"
       echo ''
@@ -1178,7 +1392,7 @@ setup_tautulli() {
   tautulliAPITestResponse=$(curl -s "${convertedURL}api/v2?apikey=${tautulliAPIKey}&cmd=arnold" |jq .response.message |tr -d '"')
   while [ "${tautulliAPIKeyStatus}" = 'invalid' ]; do
     if [ "${tautulliAPITestResponse}" = 'null' ]; then
-      sed -i.bak "${tautulliAPIKeyStatusLineNum} s/tautulliAPIKeyStatus='[^']*'/tautulliAPIKeyStatus='ok'/" "${scriptname}"
+      sed -i.bak "${tautulliAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
       tautulliAPIKeyStatus='ok'
       echo -e "${grn}Success!${endColor}"
       echo ''
@@ -1200,7 +1414,7 @@ setup_tautulli() {
     fi
   done
   echo 'Testing the full Tautulli config for MediaButler...'
-  curl -s --location --request PUT "${userMBURL}configure/${mbAPIEndpoint}?" \
+  curl -s --location --request PUT "${userMBURL}configure/${endpoint}?" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -H "${mbClientID}" \
   -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -1210,7 +1424,7 @@ setup_tautulli() {
     echo -e "${grn}Success!${endColor}"
     echo ''
     echo 'Saving the Tautulli config to MediaButler...'
-    curl -s --location --request POST "${userMBURL}configure/${mbAPIEndpoint}?" \
+    curl -s --location --request POST "${userMBURL}configure/${endpoint}?" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
@@ -1260,6 +1474,7 @@ main() {
     create_plex_servers_list
     prompt_for_plex_server
   fi
+  #check_endpoints
   main_menu
 }
 
