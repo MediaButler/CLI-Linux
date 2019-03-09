@@ -458,24 +458,24 @@ prompt_for_plex_server() {
 }
 
 # Function to check if endpoints are already configured
-check_endpoints() {
-  mbEndpoints=(tautulli sonarr sonarr4k radarr radarr4k radarr3d)
-  for endpoint in "${mbEndpoints[@]}"; do
-    endpointStatus=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
-    -H 'Content-Type: application/x-www-form-urlencoded' \
-    -H "${mbClientID}" \
-    -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
-    checkURLStatusVar=${endpoint}'URLStatus'
-    checkAPIStatusVar=${endpoint}'APIStatus'
-    endpointConfiguredVar=${endpoint}'Configured'
-    if [[ "${!checkURLStatusVar}" = 'ok' ]] && [[ "${!checkAPIStatusVar}" = 'ok' ]] && [[ "${endpointStatus}" != '{}' ]]; then
-      declare -g "$(echo "${endpointConfiguredVar}")"='true'
-    elif [[ "${!checkURLStatusVar}" = 'invalid' ]] || [[ "${!checkAPIStatusVar}" = 'invalid' ]] || [[ "${endpointStatus}" = '{}' ]]; then
-      declare -g "$(echo "${endpointConfiguredVar}")"='false'
-    fi
-    endpointURL="configure/${endpoint}"
-  done
-}
+#check_endpoints() {
+#  mbEndpoints=(tautulli sonarr sonarr4k radarr radarr4k radarr3d)
+#  for endpoint in "${mbEndpoints[@]}"; do
+#    endpointStatus=$(curl -s --location --request GET "${userMBURL}configure/${endpoint}?" \
+#    -H 'Content-Type: application/x-www-form-urlencoded' \
+#    -H "${mbClientID}" \
+#    -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+#    checkURLStatusVar=${endpoint}'URLStatus'
+#    checkAPIStatusVar=${endpoint}'APIStatus'
+#    endpointConfiguredVar=${endpoint}'Configured'
+#    if [[ "${!checkURLStatusVar}" = 'ok' ]] && [[ "${!checkAPIStatusVar}" = 'ok' ]] && [[ "${endpointStatus}" != '{}' ]]; then
+#      declare -g "$(echo "${endpointConfiguredVar}")"='true'
+#    elif [[ "${!checkURLStatusVar}" = 'invalid' ]] || [[ "${!checkAPIStatusVar}" = 'invalid' ]] || [[ "${endpointStatus}" = '{}' ]]; then
+#      declare -g "$(echo "${endpointConfiguredVar}")"='false'
+#    fi
+#    endpointURL="configure/${endpoint}"
+#  done
+#}
 
 # Function to exit the menu
 exit_menu() {
