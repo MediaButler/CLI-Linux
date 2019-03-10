@@ -312,9 +312,9 @@ reset(){
   echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
   read -r resetConfirmation
   echo ''
-  if ! [[ "${resetConfirmation}" =~ ^(yes|y|no|n)$ ]]; then
+  if ! [[ "${resetConfirmation}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
     echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-  elif [[ "${resetConfirmation}" =~ ^(yes|y)$ ]]; then
+  elif [[ "${resetConfirmation}" =~ ^(yes|y|Yes|Y)$ ]]; then
     reset_plex
     reset_sonarr
     reset_sonarr4k
@@ -324,7 +324,7 @@ reset(){
     reset_tautulli
     cleanup
     exit 0
-  elif [[ "${resetConfirmation}" =~ ^(no|n)$ ]]; then
+  elif [[ "${resetConfirmation}" =~ ^(no|n|No|N)$ ]]; then
     main_menu
   fi
 }
@@ -472,21 +472,21 @@ prompt_for_plex_server() {
   echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
   read -r mbURLConfirmation
   echo ''
-  if ! [[ "${mbURLConfirmation}" =~ ^(yes|y|no|n)$ ]]; then
+  if ! [[ "${mbURLConfirmation}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
     echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-  elif [[ "${mbURLConfirmation}" =~ ^(yes|y)$ ]]; then
+  elif [[ "${mbURLConfirmation}" =~ ^(yes|y|Yes|Y)$ ]]; then
     :
-  elif [[ "${mbURLConfirmation}" =~ ^(no|n)$ ]]; then
+  elif [[ "${mbURLConfirmation}" =~ ^(no|n|No|N)$ ]]; then
+    echo 'Please enter the correct MediaButler URL:'
+    read -r providedURL
+    echo ''
+    echo 'Checking that the provided MediaButler URL is valid...'
+    echo ''
+    convert_url
+    set +e
+    mbURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+    set -e
     while [ "${mbURLStatus}" = 'invalid' ]; do
-      echo 'Please enter the correct MediaButler URL:'
-      read -r providedURL
-      echo ''
-      echo 'Checking that the provided MediaButler URL is valid...'
-      echo ''
-      convert_url
-      set +e
-      mbURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-      set -e
       if [ "${sonarrURLCheckResponse}" = '200' ]; then
         sed -i.bak "${plexServerStatusLineNum} s/plexServerStatus='[^']*'/plexServerStatus='ok'/" "${scriptname}"
         plexServerStatus='ok'
@@ -549,11 +549,11 @@ exit_menu() {
   echo -e "${ylw}Are you sure you wish to exit?${endColor}"
   echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
   read -r exitPrompt
-  if ! [[ "${exitPrompt}" =~ ^(yes|y|no|n)$ ]]; then
+  if ! [[ "${exitPrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
     echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-  elif [[ "${exitPrompt}" =~ ^(yes|y)$ ]]; then
+  elif [[ "${exitPrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
     exit 0
-  elif [[ "${exitPrompt}" =~ ^(no|n)$ ]]; then
+  elif [[ "${exitPrompt}" =~ ^(no|n|No|N)$ ]]; then
     main_menu
   fi
 }
@@ -773,14 +773,14 @@ setup_sonarr() {
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
         read -r continuePrompt
-        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
           echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
           sed -i.bak "${sonarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
           sonarrURLStatus='invalid'
           sed -i.bak "${sonarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
           sonarrAPIKeyStatus='invalid'
-        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(no|n|No|N)$ ]]; then
           sonarr_menu
         fi
       elif [ "${sonarrSetupCheck}" = '{}' ]; then
@@ -906,14 +906,14 @@ setup_sonarr() {
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
         read -r continuePrompt
-        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
           echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
           sed -i.bak "${sonarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
           sonarr4kURLStatus='invalid'
           sed -i.bak "${sonarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
           sonarr4kAPIKeyStatus='invalid'
-        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(no|n|No|N)$ ]]; then
           sonarr_menu
         fi
       elif [ "${sonarr4kSetupCheck}" = '{}' ]; then
@@ -1026,14 +1026,14 @@ setup_radarr() {
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
         read -r continuePrompt
-        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
           echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
           sed -i.bak "${radarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
           radarrURLStatus='invalid'
           sed -i.bak "${radarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
           radarrAPIKeyStatus='invalid'
-        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(no|n|No|N)$ ]]; then
           radarr_menu
         fi
       elif [ "${radarrSetupCheck}" = '{}' ]; then
@@ -1141,14 +1141,14 @@ setup_radarr() {
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
         read -r continuePrompt
-        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
           echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
           sed -i.bak "${radarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
           radarr4kURLStatus='invalid'
           sed -i.bak "${radarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
           radarr4kAPIKeyStatus='invalid'
-        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(no|n|No|N)$ ]]; then
           radarr4k_menu
         fi
       elif [ "${radarr4kSetupCheck}" = '{}' ]; then
@@ -1256,14 +1256,14 @@ setup_radarr() {
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
         read -r continuePrompt
-        if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+        if ! [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
           echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-        elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
           sed -i.bak "${radarr3dURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
           radarr3dURLStatus='invalid'
           sed -i.bak "${radarr3dAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
           radarr3dAPIKeyStatus='invalid'
-        elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+        elif [[ "${continuePrompt}" =~ ^(no|n|No|N)$ ]]; then
           radarr3d_menu
         fi
       elif [ "${radarr3dSetupCheck}" = '{}' ]; then
@@ -1375,14 +1375,14 @@ setup_tautulli() {
       echo -e "${ylw}Do you wish to continue?${endColor}"
       echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
       read -r continuePrompt
-      if ! [[ "${continuePrompt}" =~ ^(yes|y|no|n)$ ]]; then
+      if ! [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
         echo -e "${red}Please specify yes, y, no, or n.${endColor}"
-      elif [[ "${continuePrompt}" =~ ^(yes|y)$ ]]; then
+      elif [[ "${continuePrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
         sed -i.bak "${tautulliURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='invalid'/" "${scriptname}"
         tautulliURLStatus='invalid'
         sed -i.bak "${tautulliAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
         tautulliAPIKeyStatus='invalid'
-      elif [[ "${continuePrompt}" =~ ^(no|n)$ ]]; then
+      elif [[ "${continuePrompt}" =~ ^(no|n|No|N)$ ]]; then
         main_menu
       fi
     elif [ "${tautulliSetupCheck}" = '{}' ]; then
