@@ -214,6 +214,7 @@ cleanup() {
   rm -rf "${scriptname}"*.bak || true
   rm -rf "${jsonEnvFile}" || true
 }
+trap 'cleanup' 0 1 3 6 14 15
 
 # Exit the script if the user hits CTRL+C
 function control_c() {
@@ -819,7 +820,7 @@ setup_sonarr() {
     convert_url
     set +e
     sonarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-    sonarrURLAppCheckResponse=$(curl -s http://192.168.1.103:9898/sonarr/ |grep '<title>' |awk '{print $1}' |cut -c8-13)
+    sonarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
     set -e
     while [ "${sonarrURLStatus}" = 'invalid' ]; do
       if [[ "${sonarrURLCheckResponse}" = '200' ]] && [[ "${sonarrURLAppCheckResponse}" = 'Sonarr' ]]; then
@@ -837,7 +838,7 @@ setup_sonarr() {
         convert_url
         set +e
         sonarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-        sonarrURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+        sonarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
         set -e
       fi
     done
@@ -936,7 +937,7 @@ setup_sonarr() {
     convert_url
     set +e
     sonarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-    sonarr4kURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+    sonarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
     set -e
     while [ "${sonarr4kURLStatus}" = 'invalid' ]; do
       if [[ "${sonarr4kURLCheckResponse}" = '200' ]] && [[ "${sonarr4kURLAppCheckResponse}" = 'Sonarr' ]]; then
@@ -954,7 +955,7 @@ setup_sonarr() {
         convert_url
         set +e
         sonarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-        sonarr4kURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+        sonarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
         set -e
       fi
     done
@@ -1058,7 +1059,7 @@ setup_radarr() {
     convert_url
     set +e
     radarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-    radarrURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+    radarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
     set -e
     while [ "${radarrURLStatus}" = 'invalid' ]; do
       if [[ "${radarrURLCheckResponse}" = '200' ]] && [[ "${radarrURLAppCheckResponse}" = 'Radarr' ]]; then
@@ -1076,7 +1077,7 @@ setup_radarr() {
         convert_url
         set +e
         radarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-        radarrURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+        radarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
         set -e
       fi
     done
@@ -1175,7 +1176,7 @@ setup_radarr() {
     convert_url
     set +e
     radarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-    radarr4kURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+    radarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
     set -e
     while [ "${radarr4kURLStatus}" = 'invalid' ]; do
       if [[ "${radarr4kURLCheckResponse}" = '200' ]] && [[ "${radarr4kURLAppCheckResponse}" = 'Radarr' ]]; then
@@ -1193,7 +1194,7 @@ setup_radarr() {
         convert_url
         set +e
         radarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-        radarr4kURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+        radarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
         set -e
       fi
     done
@@ -1292,7 +1293,7 @@ setup_radarr() {
     convert_url
     set +e
     radarr3dURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-    radarr3dURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+    radarr3dURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
     set -e
     while [ "${radarr3dURLStatus}" = 'invalid' ]; do
       if [[ "${radarr3dURLCheckResponse}" = '200' ]] && [[ "${radarr3dURLAppCheckResponse}" = 'Radarr' ]]; then
@@ -1310,7 +1311,7 @@ setup_radarr() {
         convert_url
         set +e
         radarr3dURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-        radarr3dURLAppCheckResponse=$(curl -s "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
+        radarr3dURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" |grep '<title>' |awk '{print $1}' |cut -c8-13)
         set -e
       fi
     done
@@ -1413,7 +1414,7 @@ setup_tautulli() {
   convert_url
   set +e
   tautulliURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
-  tautulliURLAppCheckResponse=$(curl -s "${convertedURL}"auth/login?redirect_uri=/tautulli/ |grep '<title>' |awk '{print $1}' |cut -c8-)
+  tautulliURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}"auth/login?redirect_uri=/tautulli/ |grep '<title>' |awk '{print $1}' |cut -c8-)
   set -e
   while [ "${tautulliURLStatus}" = 'invalid' ]; do
     if [[ "${tautulliURLCheckResponse}" = '200' ]] && [[ "${tautulliURLAppCheckResponse}" = 'Tautulli' ]]; then
@@ -1431,7 +1432,7 @@ setup_tautulli() {
       convert_url
       set +e
       tautulliURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
-      tautulliURLAppCheckResponse=$(curl -s "${convertedURL}"auth/login?redirect_uri=/tautulli/ |grep '<title>' |awk '{print $1}' |cut -c8-)
+      tautulliURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}"auth/login?redirect_uri=/tautulli/ |grep '<title>' |awk '{print $1}' |cut -c8-)
       set -e
     fi
   done
