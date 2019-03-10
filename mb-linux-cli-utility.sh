@@ -502,7 +502,7 @@ prompt_for_plex_server() {
         userMBURL=$(echo "${convertedURL}")
         echo -e "${grn}Success!${endColor}"
         echo ''
-      elif [[ "${mbURLCheckResponse}" != '200' ]] || [[ "${mbAPIStatus}" = 'bad' ]]; then
+      elif [[ "${mbURLCheckResponse}" != '200' ]]; then
         echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
         echo 'Please enter the correct MediaButler URL:'
         read -r providedURL
@@ -513,6 +513,10 @@ prompt_for_plex_server() {
         set +e
         mbURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
         set -e
+      elif [[ "${mbAPIStatus}" = 'bad' ]]; then
+        echo -e "${red}The version of the API that you're running appears to be out of date!${endColor}"
+        echo -e "${org}Please update your MediaButler installation before continuing.${endColor}"
+        exit 0
       fi
     done
   fi
