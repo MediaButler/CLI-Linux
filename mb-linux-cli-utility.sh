@@ -487,9 +487,9 @@ prompt_for_plex_server() {
     mbURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
     set -e
     while [ "${mbURLStatus}" = 'invalid' ]; do
-      if [ "${sonarrURLCheckResponse}" = '200' ]; then
-        sed -i.bak "${plexServerStatusLineNum} s/plexServerStatus='[^']*'/plexServerStatus='ok'/" "${scriptname}"
-        plexServerStatus='ok'
+      if [ "${mbURLCheckResponse}" = '200' ]; then
+        sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='ok'/" "${scriptname}"
+        mbURLStatus='ok'
         userMBURL=$(echo "${convertedURL}")
         echo -e "${grn}Success!${endColor}"
         echo ''
