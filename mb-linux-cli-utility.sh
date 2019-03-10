@@ -486,9 +486,9 @@ prompt_for_plex_server() {
     convert_url
     set +e
     mbURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
-    userMBApiVersionOne=$(curl -s https://tronflix.app/mediabutler/version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $1}')
-    userMBApiVersionTwo=$(curl -s https://tronflix.app/mediabutler/version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $2}')
-    userMBApiVersionThree=$(curl -s https://tronflix.app/mediabutler/version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $3}')
+    userMBApiVersionOne=$(curl -s --connect-timeout 10 "${convertedURL}"version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $1}')
+    userMBApiVersionTwo=$(curl -s --connect-timeout 10 "${convertedURL}"version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $2}')
+    userMBApiVersionThree=$(curl -s --connect-timeout 10 "${convertedURL}"version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $3}')
     set -e
     if [[ "${userMBApiVersionOne}" -ge '1' ]] && [[ "${userMBApiVersionTwo}" -ge '1' ]] && [[ "${userMBApiVersionThree}" -ge '12' ]]; then
       mbAPIStatus='ok'
