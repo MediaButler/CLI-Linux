@@ -230,7 +230,7 @@ function control_c() {
   elif [ "${endpoint}" = 'radarr4k' ]; then
     reset_radarr4k
   elif [ "${endpoint}" = 'radarr3d' ]; then
-    reset_radar3d
+    reset_radarr3d
   fi
   exit
 }
@@ -730,7 +730,7 @@ prompt_for_arr_profile() {
       reset_radarr4k
       radarr_menu
     elif [ "${endpoint}" = 'radarr3d' ]; then
-      reset_radar3d
+      reset_radarr3d
       radarr_menu
     fi
   else
@@ -775,7 +775,7 @@ prompt_for_arr_root_dir() {
       reset_radarr4k
       radarr_menu
     elif [ "${endpoint}" = 'radarr3d' ]; then
-      reset_radar3d
+      reset_radarr3d
       radarr_menu
     fi
   else
