@@ -208,14 +208,25 @@ create_dir() {
 
 # Cleanup temp files
 cleanup() {
-  rm -rf "${tempDir}" || true
-  rm -rf "${scriptname}".* || true
+  rm -rf "${tempDir}"/*.txt || true
+  rm -rf "${scriptname}"*.bak || true
   rm -rf "${jsonEnvFile}" || true
 }
 
 # Exit the script if the user hits CTRL+C
 function control_c() {
-  #cleanup
+  cleanup
+  if [ "${endpoint}" = 'sonarr' ]; then
+    reset_sonarr
+  elif [ "${endpoint}" = 'sonarr4k' ]; then
+    reset_sonarr4k
+  elif [ "${endpoint}" = 'radarr' ]; then
+    reset_radarr
+  elif [ "${endpoint}" = 'radarr4k' ]; then
+    reset_radarr4k
+  elif [ "${endpoint}" = 'radarr3d' ]; then
+    reset_radar3d
+  fi
   exit
 }
 trap 'control_c' 2
@@ -302,7 +313,7 @@ reset(){
     reset_sonarr4k
     reset_radarr
     reset_radarr4k
-    reset_radar3d
+    reset_radarr3d
     reset_tautulli
     cleanup
     exit 0
