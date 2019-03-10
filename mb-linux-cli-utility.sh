@@ -41,10 +41,10 @@ plexCredsFile="${tempDir}plex_creds_check.txt"
 envFile="${tempDir}envFile.txt"
 jsonEnvFile='data.json'
 plexTokenFile="${tempDir}plex_token.txt"
-plexServerMachineIDFile="${tempDir}plex_machineID.txt"
-selectedPlexServerNameFile="${tempDir}plex_server_name.txt"
-userMBURLFile="${tempDir}user_mb_url.txt"
-plexServerMBTokenFile="${tempDir}plex_server_mb_token.txt"
+#plexServerMachineIDFile="${tempDir}plex_machineID.txt"
+#selectedPlexServerNameFile="${tempDir}plex_server_name.txt"
+#userMBURLFile="${tempDir}user_mb_url.txt"
+#plexServerMBTokenFile="${tempDir}plex_server_mb_token.txt"
 plexServersFile="${tempDir}plex_server_list.txt"
 numberedPlexServersFile="${tempDir}numbered_plex_server_list.txt"
 tautulliConfigFile="${tempDir}tautulli_config.txt"
@@ -587,7 +587,11 @@ main_menu(){
   echo ''
   echo '1) Sonarr'
   echo '2) Radarr'
-  echo '3) Tautulli'
+  if [[ "${tautulliURLStatus}" = 'ok' ]] && [[ "${tautulliAPIKeyStatus}" = 'ok' ]]; then
+    echo -e "3) ${grn}Tautulli${endColor}"
+  else
+    echo -e "3) ${red}Tautulli${endColor}"
+  fi
   echo '4) Reset'
   echo '5) Exit'
   echo ''
