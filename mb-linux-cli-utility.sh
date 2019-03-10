@@ -585,8 +585,16 @@ main_menu(){
   echo 'Please choose which application you would'
   echo '   like to configure for MediaButler:    '
   echo ''
-  echo '1) Sonarr'
-  echo '2) Radarr'
+  if [[ "${sonarrURLStatus}" = 'ok' ]] && [[ "${sonarrAPIKeyStatus}" = 'ok' ]] && [[ "${sonarr4kURLStatus}" = 'ok' ]] && [[ "${sonarr4kAPIKeyStatus}" = 'ok' ]]; then
+    echo -e "1) ${grn}Sonarr${endColor}"
+  else
+    echo '1) Sonarr'
+  fi
+  if [[ "${radarrURLStatus}" = 'ok' ]] && [[ "${radarrAPIKeyStatus}" = 'ok' ]] && [[ "${radarr4kURLStatus}" = 'ok' ]] && [[ "${radarr4kAPIKeyStatus}" = 'ok' ]] && [[ "${radarr3dURLStatus}" = 'ok' ]] && [[ "${radarr3dAPIKeyStatus}" = 'ok' ]]; then
+    echo -e "1) ${grn}Sonarr${endColor}"
+  else
+    echo '2) Radarr'
+  fi
   if [[ "${tautulliURLStatus}" = 'ok' ]] && [[ "${tautulliAPIKeyStatus}" = 'ok' ]]; then
     echo -e "3) ${grn}Tautulli${endColor}"
   else
