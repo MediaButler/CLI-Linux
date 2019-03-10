@@ -100,7 +100,7 @@ root_check() {
 
 # Function to check Bash is >=4 and, if not, exit w/ message
 check_bash() {
-  bashMajorVersion=$(bash --version | grep -Po 'bash, version \K\w+')
+  bashMajorVersion=$(bash --version |head -1 |awk '{print $4}' |cut -c1)
   if [ "${bashMajorVersion}" -lt '4' ]; then
     echo -e "${red}This script requires Bash v4 or higher!${endColor}"
     echo -e "${ylw}Please upgrade Bash on this system and then try again.${endColor}"
@@ -114,7 +114,7 @@ check_sed() {
   if [ "${packageManager}" = 'mac' ]; then
     sedMajorVersion=$(gsed --version |head -1 |awk '{print $4}' |cut -c1)
   else
-    sedMajorVersion=$(sed --version | grep -Po '.* \K\d+(?=(\.\d+)+)')
+    sedMajorVersion=$(sed --version |head -1 |awk '{print $4}' |cut -c1)
   fi
   if [ "${sedMajorVersion}" -lt '4' ]; then
     echo -e "${red}This script requires Sed v4 or higher!${endColor}"
