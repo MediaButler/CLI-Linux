@@ -14,6 +14,8 @@ mbClientIDShort='4d656446-fbe7-4545-b754-1adfb8eb554e'
 plexCredsStatus='invalid'
 # Set initial Plex server selection status
 plexServerStatus='invalid'
+# Set initial MediaButler URL status
+mbURLStatus='invalid'
 # Set initial Tautulli credentials status
 tautulliURLStatus='invalid'
 tautulliAPIKeyStatus='invalid'
@@ -216,7 +218,9 @@ cleanup() {
 # Exit the script if the user hits CTRL+C
 function control_c() {
   cleanup
-  if [ "${endpoint}" = 'sonarr' ]; then
+  if [ "${endpoint}" = 'plex' ]; then
+    reset_plex
+  elif [ "${endpoint}" = 'sonarr' ]; then
     reset_sonarr
   elif [ "${endpoint}" = 'sonarr4k' ]; then
     reset_sonarr4k
@@ -235,6 +239,7 @@ trap 'control_c' 2
 get_line_numbers() {
   plexCredsStatusLineNum=$(head -50 "${scriptname}" |grep -En -A1 'Set initial Plex credentials status' |tail -1 | awk -F- '{print $1}')
   plexServerStatusLineNum=$(head -50 "${scriptname}" |grep -En -A1 'Set initial Plex server selection status' |tail -1 | awk -F- '{print $1}')
+  mbURLStatusLineNum=$(head -50 "${scriptname}" |grep -En -A1 'Set initial MediaButler URL status' |tail -1 | awk -F- '{print $1}')
   tautulliURLStatusLineNum=$(head -50 "${scriptname}" |grep -En -A2 'Set initial Tautulli credentials status' |grep URL |awk -F- '{print $1}')
   tautulliAPIKeyStatusLineNum=$(head -50 "${scriptname}" |grep -En -A2 'Set initial Tautulli credentials status' |grep API |awk -F- '{print $1}')
   sonarrURLStatusLineNum=$(head -50 "${scriptname}" |grep -En -A2 'Set initial Sonarr credentials status' |grep URL |awk -F- '{print $1}')
@@ -256,6 +261,8 @@ reset_plex() {
   plexCredsStatus='invalid'
   sed -i.bak "${plexServerStatusLineNum} s/plexServerStatus='[^']*'/plexServerStatus='invalid'/" "${scriptname}"
   plexServerStatus='invalid'
+  sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='invalid'/" "${scriptname}"
+  mbURLStatus='invalid'
 }
 # Sonarr
 reset_sonarr() {
@@ -324,6 +331,7 @@ reset(){
 
 # Function to prompt user for Plex credentials or token
 get_plex_creds() {
+  endpoint='plex'
   echo 'Welcome to the MediaButler setup utility!'
   echo 'First thing we need are your Plex credentials so please choose from one of the following options:'
   echo ''
@@ -352,6 +360,7 @@ get_plex_creds() {
 
 # Function to check that the provided Plex credentials are valid
 check_plex_creds() {
+  endpoint='plex'
   echo "Now we're going to make sure you provided valid credentials..."
   while [ "${plexCredsStatus}" = 'invalid' ]; do
     if [ "${plexCredsOption}" == '1' ]; then
@@ -398,6 +407,7 @@ check_plex_creds() {
 
 # Function to get user's Plex token
 get_plex_token() {
+  endpoint='plex'
   if [ "${plexCredsOption}" == '1' ]; then
     plexToken=$(curl -s -X "POST" "https://plex.tv/users/sign_in.json" \
       -H "X-Plex-Version: 1.0.0" \
@@ -416,6 +426,7 @@ get_plex_token() {
 
 # Function to create list of Plex servers
 create_plex_servers_list() {
+  endpoint='plex'
   jq '.servers[] | select(.owner==true)' "${plexCredsFile}" |jq .name |tr -d '"' > "${plexServersFile}"
   plexServers=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'plexServers=($(cat "${plexServersFile}"))'
@@ -427,6 +438,7 @@ create_plex_servers_list() {
 
 # Function to prompt user to select Plex Server from list and retrieve user's MediaButler URL
 prompt_for_plex_server() {
+  endpoint='plex'
   numberOfOptions=$(echo "${#plexServers[@]}")
   while [ "${plexServerStatus}" = 'invalid' ]; do
     echo 'Please choose which Plex Server you would like to setup MediaButler for:'
@@ -436,7 +448,7 @@ prompt_for_plex_server() {
     read -p "Server: " plexServerSelection
     if [[ "${plexServerSelection}" -lt '1' ]] || [[ "${plexServerSelection}" -gt "${numberOfOptions}" ]]; then
       echo -e "${red}You did not specify a valid option!${endColor}"
-      #reset_plex
+      reset_plex
     else
       sed -i.bak "${plexServerStatusLineNum} s/plexServerStatus='[^']*'/plexServerStatus='ok'/" "${scriptname}"
       plexServerStatus='ok'
@@ -465,13 +477,40 @@ prompt_for_plex_server() {
   elif [[ "${mbURLConfirmation}" =~ ^(yes|y)$ ]]; then
     :
   elif [[ "${mbURLConfirmation}" =~ ^(no|n)$ ]]; then
-    echo 'Please enter the correct MediaButler URL:'
-    read -r userMBURL
+    while [ "${mbURLStatus}" = 'invalid' ]; do
+      echo 'Please enter the correct MediaButler URL:'
+      read -r providedURL
+      echo ''
+      echo 'Checking that the provided MediaButler URL is valid...'
+      echo ''
+      convert_url
+      set +e
+      mbURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+      set -e
+      if [ "${sonarrURLCheckResponse}" = '200' ]; then
+        sed -i.bak "${plexServerStatusLineNum} s/plexServerStatus='[^']*'/plexServerStatus='ok'/" "${scriptname}"
+        plexServerStatus='ok'
+        userMBURL=$(echo "${convertedURL}")
+        echo -e "${grn}Success!${endColor}"
+        echo ''
+      elif [ "${mbURLCheckResponse}" != '200' ]; then
+        echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
+        echo 'Please enter the correct MediaButler URL:'
+        read -r providedURL
+        echo ''
+        echo 'Checking that the provided MediaButler URL is valid...'
+        echo ''
+        convert_url
+        set +e
+        mbURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+        set -e
+      fi
+    done
   fi
-  echo "${selectedPlexServerName}" > "${selectedPlexServerNameFile}"
-  echo "${plexServerMachineID}" > "${plexServerMachineIDFile}"
-  echo "${userMBURL}" > "${userMBURLFile}"
-  echo "${plexServerMBToken}" > "${plexServerMBTokenFile}"
+  #echo "${selectedPlexServerName}" > "${selectedPlexServerNameFile}"
+  #echo "${plexServerMachineID}" > "${plexServerMachineIDFile}"
+  #echo "${userMBURL}" > "${userMBURLFile}"
+  #echo "${plexServerMBToken}" > "${plexServerMBTokenFile}"
 }
 
 # Function to create environment variables file
