@@ -464,6 +464,15 @@ prompt_for_plex_server() {
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     --data "authToken=${plexToken}&machineId=${plexServerMachineID}")
+  if [ "${userMBURL}" != *'Error'* ]; then
+    :
+  else
+    echo -e "${red}Unable to automatically retrieve your MediaButler URL!"
+    echo -e "${ylw}This is typically indicative of port 9876 not being forwarded."
+    echo -e "${ylw}Please check your port forwarding and try again."
+    reset_plex
+    exit 0
+  fi
   plexServerMBToken=$(jq .servers["${plexServerArrayElement}"].token "${plexCredsFile}" |tr -d '"')
   echo -e "${grn}Done!${endColor}"
   echo ''
