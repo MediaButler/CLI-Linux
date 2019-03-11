@@ -1506,7 +1506,7 @@ setup_radarr() {
         radarr3dURLStatus='ok'
         echo -e "${grn}Success!${endColor}"
         echo ''
-      elif [ "${radarr3dURLCheckResponse}" != '200' ]; then
+      elif [[ "${radarr3dURLCheckResponse}" != '200' ]] || [[ "${radarr3dURLAppCheckResponse}" = 'Radarr' ]]; then
         echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
         echo 'Please enter your Radarr 4k URL (IE: http://127.0.0.1:8989/radarr/):'
         read -r providedURL
@@ -1627,7 +1627,7 @@ setup_tautulli() {
       tautulliURLStatus='ok'
       echo -e "${grn}Success!${endColor}"
       echo ''
-    elif [[ "${tautulliURLCheckResponse}" != '200' ]] && [[ "${tautulliURLAppCheckResponse}" = 'Tautulli' ]]; then
+    elif [[ "${tautulliURLCheckResponse}" != '200' ]] || [[ "${tautulliURLAppCheckResponse}" = 'Tautulli' ]]; then
       echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
       echo 'Please enter your Tautulli URL (IE: http://127.0.0.1:8181/tautulli/):'
       read -r providedURL
