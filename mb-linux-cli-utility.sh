@@ -464,12 +464,12 @@ prompt_for_plex_server() {
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     --data "authToken=${plexToken}&machineId=${plexServerMachineID}")
-  if [ "${userMBURL}" != *'Error'* ]; then
+  if [[ "${userMBURL}" != *'Error'* ]]; then
     :
-  else
-    echo -e "${red}Unable to automatically retrieve your MediaButler URL!"
-    echo -e "${ylw}This is typically indicative of port 9876 not being forwarded."
-    echo -e "${ylw}Please check your port forwarding and try again."
+  elif [[ "${userMBURL}" =~ 'Error' ]]; then
+    echo -e "${red}Unable to automatically retrieve your MediaButler URL!${endColor}"
+    echo -e "${ylw}This is typically indicative of port 9876 not being forwarded.${endColor}"
+    echo -e "${ylw}Please check your port forwarding and try again.${endColor}"
     reset_plex
     exit 0
   fi
