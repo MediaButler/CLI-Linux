@@ -41,10 +41,6 @@ plexCredsFile="${tempDir}plex_creds_check.txt"
 envFile="${tempDir}envFile.txt"
 jsonEnvFile='data.json'
 plexTokenFile="${tempDir}plex_token.txt"
-#plexServerMachineIDFile="${tempDir}plex_machineID.txt"
-#selectedPlexServerNameFile="${tempDir}plex_server_name.txt"
-#userMBURLFile="${tempDir}user_mb_url.txt"
-#plexServerMBTokenFile="${tempDir}plex_server_mb_token.txt"
 plexServersFile="${tempDir}plex_server_list.txt"
 numberedPlexServersFile="${tempDir}numbered_plex_server_list.txt"
 tautulliConfigFile="${tempDir}tautulli_config.txt"
@@ -1535,7 +1531,6 @@ main() {
   create_dir
   checks
   get_line_numbers
-  #if [[ -e "${plexCredsFile}" ]]; then
   if [[ -e "${jsonEnvFile}" ]]; then
     sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
     plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
@@ -1543,23 +1538,18 @@ main() {
     plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
     plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" |jq .value |tr -d '"')
     userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" |jq .value |tr -d '"')
-  #elif [[ ! -f "${plexCredsFile}" ]]; then
   elif [[ ! -f "${jsonEnvFile}" ]]; then
     get_plex_creds
     check_plex_creds
   fi
-  #if [[ -e "${plexTokenFile}" ]]; then
   if [[ -z "${plexToken}" ]]; then
     get_plex_token
-  #elif [[ ! -f "${plexTokenFile}" ]]; then
   else
     :
   fi
-  #if [[ -e "${plexServersFile}" ]]; then
   if [[ -z "${selectedPlexServerName}" ]] || [[ -z "${plexServerMachineID}" ]] || [[ -z "${userMBURL}" ]] || [[ -z "${plexServerMBToken}" ]]; then
     create_plex_servers_list
     prompt_for_plex_server
-  #elif [[ ! -f "${plexServersFile}" ]]; then
   else
     :
   fi
