@@ -469,7 +469,7 @@ prompt_for_plex_server() {
   elif [[ "${userMBURL}" =~ 'Error' ]]; then
     echo -e "${red}Unable to automatically retrieve your MediaButler URL!${endColor}"
     echo -e "${ylw}This is typically indicative of port 9876 not being forwarded.${endColor}"
-    echo -e "${ylw}Please check your port forwarding and try again.${endColor}"
+    echo -e "${ylw}Please check your port forwarding and then try again.${endColor}"
     reset_plex
     exit 0
   fi
@@ -521,10 +521,19 @@ prompt_for_plex_server() {
         convert_url
         set +e
         mbURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
+        userMBApiVersionOne=$(curl -s --connect-timeout 10 "${convertedURL}"version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $1}')
+        userMBApiVersionTwo=$(curl -s --connect-timeout 10 "${convertedURL}"version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $2}')
+        userMBApiVersionThree=$(curl -s --connect-timeout 10 "${convertedURL}"version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $3}')
         set -e
+        if [[ "${userMBApiVersionOne}" -gt '1' ]] || [[ "${userMBApiVersionTwo}" -gt '1' ]] || [[ "${userMBApiVersionThree}" -ge '12' ]]; then
+          mbAPIStatus='ok'
+        else
+          mbAPIStatus='bad'
+        fi
       elif [[ "${mbAPIStatus}" = 'bad' ]]; then
         echo -e "${red}The version of the API that you're running appears to be out of date!${endColor}"
         echo -e "${org}Please update your MediaButler installation before continuing.${endColor}"
+        reset_plex
         exit 0
       fi
     done
