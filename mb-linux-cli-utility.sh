@@ -207,7 +207,7 @@ create_dir() {
 # Cleanup temp files
 cleanup() {
   rm -rf "${tempDir}"/*.txt || true
-  rm -rf "${scriptname}"*.bak || true
+  rm -rf "${scriptname}".bak || true
   rm -rf "${jsonEnvFile}" || true
 }
 trap 'cleanup' 0 1 3 6 14 15
@@ -227,6 +227,8 @@ function control_c() {
     reset_radarr4k
   elif [ "${endpoint}" = 'radarr3d' ]; then
     reset_radarr3d
+  elif [ "${endpoint}" = 'tautulli' ]; then
+    reset_tautulli
   fi
   exit
 }
@@ -299,7 +301,9 @@ reset_radarr3d() {
 # Tautulli
 reset_tautulli() {
   sed -i.bak "${tautulliURLStatusLineNum} s/tautulliURLStatus='[^']*'/tautulliURLStatus='invalid'/" "${scriptname}"
+  tautulliURLStatus='invalid'
   sed -i.bak "${tautulliAPIKeyStatusLineNum} s/tautulliAPIKeyStatus='[^']*'/tautulliAPIKeyStatus='invalid'/" "${scriptname}"
+  tautulliAPIKeyStatus='invalid'
 }
 # All apps and Plex
 reset(){
@@ -322,7 +326,7 @@ reset(){
     cleanup
     exit 0
   elif [[ "${resetConfirmation}" =~ ^(no|n|No|N)$ ]]; then
-    main_menu
+    endpoint_menu
   fi
 }
 
@@ -577,7 +581,7 @@ exit_menu() {
   elif [[ "${exitPrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
     exit 0
   elif [[ "${exitPrompt}" =~ ^(no|n|No|N)$ ]]; then
-    main_menu
+    endpoint_menu
   fi
 }
 
@@ -592,9 +596,176 @@ convert_url() {
 }
 
 # Function to display the main menu
-main_menu(){
+main_menu() {
   echo '*****************************************'
-  echo '*               Main Menu               *'
+  echo '*              ~Main Menu~              *'
+  echo '*****************************************'
+  echo 'Please select from the following options:'
+  echo "        (${red}*${endColor} indicates Admin only)         "
+  echo ''
+  echo '1) Configure Applications*'
+  echo '2) Media Requests'
+  echo '3) Media Issues'
+  echo '4) Playback Information'
+  echo '5) Library Information'
+  echo '6) Media Search'
+  echo '7) Exit'
+  echo ''
+  read -rp 'Selection: ' mainMenuSelection
+  echo ''
+  if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7)$ ]]; then
+    echo -e "${red}You did not specify a valid option!${endColor}"
+    main_menu
+  elif [ "${mainMenuSelection}" = '1' ]; then
+    endpoint_menu
+  elif [ "${mainMenuSelection}" = '2' ]; then
+    requests_menu
+  elif [ "${mainMenuSelection}" = '3' ]; then
+    issues_menu
+  elif [ "${mainMenuSelection}" = '4' ]; then
+    playback_menu
+  elif [ "${mainMenuSelection}" = '5' ]; then
+    library_menu
+  elif [ "${mainMenuSelection}" = '6' ]; then
+    search_menu
+  elif [ "${mainMenuSelection}" = '7' ]; then
+    exit_menu
+  fi
+}
+
+# Function to display the requests menu
+requests_menu() {
+  echo '*****************************************'
+  echo '*            ~Requests Menu~            *'
+  echo '*****************************************'
+  echo 'Please select from the following options:'
+  echo "        (${red}*${endColor} indicates Admin only)         "
+  echo ''
+  echo '1) Submit Request'
+  echo '2) Manage Requests*'
+  echo '3) Exit'
+  echo ''
+  read -rp 'Selection: ' requestsMenuSelection
+  echo ''
+  if ! [[ "${requestsMenuSelection}" =~ ^(1|2|3)$ ]]; then
+    echo -e "${red}You did not specify a valid option!${endColor}"
+    requests_menu
+  elif [ "${mainMenuSelection}" = '1' ]; then
+    #submit_requests_menu
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${mainMenuSelection}" = '2' ]; then
+    #manage_requests_menu
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${mainMenuSelection}" = '3' ]; then
+    main_menu
+  fi
+}
+
+# Function to display the issues menu
+issues_menu() {
+  echo '*****************************************'
+  echo '*             ~Issues Menu~             *'
+  echo '*****************************************'
+  echo 'Please select from the following options"'
+  echo "        (${red}*${endColor} indicates Admin only)         "
+  echo ''
+  echo '1) Add Issue'
+  echo "2) Manage Issues${red}*${endColor}"
+  echo '3) Exit'
+  echo ''
+  read -rp 'Selection: ' issuesMenuSelection
+  echo ''
+  if ! [[ "${issuesMenuSelection}" =~ ^(1|2|3)$ ]]; then
+    echo -e "${red}You did not specify a valid option!${endColor}"
+    issues_menu
+  elif [ "${issuesMenuSelection}" = '1' ]; then
+    #add_issue_menu
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${issuesMenuSelection}" = '2' ]; then
+    #manage_issues_menu
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${issuesMenuSelection}" = '3' ]; then
+    main_menu
+  fi
+}
+
+# Function to display the playback menu
+playback_menu() {
+  echo '*****************************************'
+  echo '*            ~Playback Menu~            *'
+  echo '*****************************************'
+  echo 'Please select from the following options"'
+  echo "        (${red}*${endColor} indicates Admin only)         "
+  echo ''
+  echo '1) Playback History'
+  echo "2) Now Playing${red}*${endColor}"
+  echo '3) Exit'
+  echo ''
+  read -rp 'Selection: ' playbackMenuSelection
+  echo ''
+  if ! [[ "${playbackMenuSelection}" =~ ^(1|2|3)$ ]]; then
+    echo -e "${red}You did not specify a valid option!${endColor}"
+    playback_menu
+  elif [ "${playbackMenuSelection}" = '1' ]; then
+    #playback_history
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${playbackMenuSelection}" = '2' ]; then
+    #now_playing
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${playbackMenuSelection}" = '3' ]; then
+    main_menu
+  fi
+}
+
+# Function to display the library menu
+library_menu() {
+  foo
+}
+
+# Function to display the search menu
+search_menu() {
+  echo '*****************************************'
+  echo '*             ~Search Menu~             *'
+  echo '*****************************************'
+  echo 'Please select from the following options"'
+  echo ''
+  echo '1) TV Show'
+  echo '2) Movie'
+  echo '3) Music'
+  echo '4) Exit'
+  echo ''
+  read -rp 'Selection: ' searchMenuSelection
+  echo ''
+  if ! [[ "${searchMenuSelection}" =~ ^(1|2|3|4)$ ]]; then
+    echo -e "${red}You did not specify a valid option!${endColor}"
+    search_menu
+  elif [ "${searchMenuSelection}" = '1' ]; then
+    #search_show
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${searchMenuSelection}" = '2' ]; then
+    #search_movie
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${searchMenuSelection}" = '3' ]; then
+    #search_music
+    echo -e "${red}Not setup yet!${endColor}"
+    exit 0
+  elif [ "${searchMenuSelection}" = '4' ]; then
+    main_menu
+  fi
+}
+
+# Function to display the endpoint config menu
+endpoint_menu(){
+  echo '*****************************************'
+  echo '*     ~Endpoint Configuration Menu~     *'
   echo '*****************************************'
   echo 'Please choose which application you would'
   echo '   like to configure for MediaButler:    '
@@ -607,11 +778,11 @@ main_menu(){
     echo -e "1) ${ylw}Sonarr${endColor}"
   fi
   if [[ "${radarrURLStatus}" = 'ok' ]] && [[ "${radarrAPIKeyStatus}" = 'ok' ]] && [[ "${radarr4kURLStatus}" = 'ok' ]] && [[ "${radarr4kAPIKeyStatus}" = 'ok' ]] && [[ "${radarr3dURLStatus}" = 'ok' ]] && [[ "${radarr3dAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "1) ${grn}Sonarr${endColor}"
+    echo -e "2) ${grn}Radarr${endColor}"
   elif [[ "${radarrURLStatus}" = 'invalid' ]] && [[ "${radarrAPIKeyStatus}" = 'invalid' ]] && [[ "${radarr4kURLStatus}" = 'invalid' ]] && [[ "${radarr4kAPIKeyStatus}" = 'invalid' ]] && [[ "${radarr3dURLStatus}" = 'invalid' ]] && [[ "${radarr3dAPIKeyStatus}" = 'invalid' ]]; then
-    echo -e "1) ${red}Sonarr${endColor}"
+    echo -e "2) ${red}Radarr${endColor}"
   else
-    echo -e "1) ${ylw}Sonarr${endColor}"
+    echo -e "2) ${ylw}Radarr${endColor}"
   fi
   if [[ "${tautulliURLStatus}" = 'ok' ]] && [[ "${tautulliAPIKeyStatus}" = 'ok' ]]; then
     echo -e "3) ${grn}Tautulli${endColor}"
@@ -621,20 +792,20 @@ main_menu(){
   echo '4) Reset'
   echo '5) Exit'
   echo ''
-  read -rp 'Selection: ' mainMenuSelection
+  read -rp 'Selection: ' endpointMenuSelection
   echo ''
-  if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5)$ ]]; then
+  if ! [[ "${endpointMenuSelection}" =~ ^(1|2|3|4|5)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
-    main_menu
-  elif [ "${mainMenuSelection}" = '1' ]; then
+    endpoint_menu
+  elif [ "${endpointMenuSelection}" = '1' ]; then
     sonarr_menu
-  elif [ "${mainMenuSelection}" = '2' ]; then
+  elif [ "${endpointMenuSelection}" = '2' ]; then
     radarr_menu
-  elif [ "${mainMenuSelection}" = '3' ]; then
+  elif [ "${endpointMenuSelection}" = '3' ]; then
     setup_tautulli
-  elif [ "${mainMenuSelection}" = '4' ]; then
+  elif [ "${endpointMenuSelection}" = '4' ]; then
     reset
-  elif [ "${mainMenuSelection}" = '5' ]; then
+  elif [ "${endpointMenuSelection}" = '5' ]; then
     exit_menu
   fi
 }
@@ -642,7 +813,7 @@ main_menu(){
 # Function to display the Sonarr sub-menu
 sonarr_menu() {
   echo '*****************************************'
-  echo '*           Sonarr Setup Menu           *'
+  echo '*          ~Sonarr Setup Menu~          *'
   echo '*****************************************'
   echo 'Please choose which version of Sonarr you'
   echo 'would like to configure for MediaButler: '
@@ -667,14 +838,14 @@ sonarr_menu() {
   elif [[ "${sonarrMenuSelection}" =~ ^(1|2)$ ]]; then
     setup_sonarr
   elif [ "${sonarrMenuSelection}" = '3' ]; then
-    main_menu
+    endpoint_menu
   fi
 }
 
 # Function to display the Radarr sub-menu
 radarr_menu() {
   echo '*****************************************'
-  echo '*           Radarr Setup Menu           *'
+  echo '*          ~Radarr Setup Menu~          *'
   echo '*****************************************'
   echo 'Please choose which version of Radarr you'
   echo 'would like to configure for MediaButler: '
@@ -704,7 +875,7 @@ radarr_menu() {
   elif [[ "${radarrMenuSelection}" =~ ^(1|2|3)$ ]]; then
     setup_radarr
   elif [ "${radarrMenuSelection}" = '4' ]; then
-    main_menu
+    endpoint_menu
   fi
 }
 
@@ -924,16 +1095,16 @@ setup_sonarr() {
         sleep 3
         echo ''
         echo 'Returning you to the Main Menu...'
-        main_menu
+        endpoint_menu
       elif [ "${sonarrMBConfigPostResponse}" != 'success' ]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
-        main_menu
+        endpoint_menu
       fi
     elif [ "${sonarrMBConfigTestResponse}" != 'success' ]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
-      main_menu
+      endpoint_menu
     fi
   elif [ "${sonarrMenuSelection}" = '2' ]; then
     endpoint='sonarr4k'
@@ -1041,16 +1212,16 @@ setup_sonarr() {
         sleep 3
         echo ''
         echo 'Returning you to the Main Menu...'
-        main_menu
+        endpoint_menu
       elif [ "${sonarr4kMBConfigPostResponse}" != 'success' ]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
-        main_menu
+        endpoint_menu
       fi
     elif [ "${sonarr4kMBConfigTestResponse}" != 'success' ]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
-      main_menu
+      endpoint_menu
     fi
   fi
 }
@@ -1163,16 +1334,16 @@ setup_radarr() {
         sleep 3
         echo ''
         echo 'Returning you to the Main Menu...'
-        main_menu
+        endpoint_menu
       elif [ "${radarrMBConfigPostResponse}" != 'success' ]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
-        main_menu
+        endpoint_menu
       fi
     elif [ "${radarrMBConfigTestResponse}" != 'success' ]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
-      main_menu
+      endpoint_menu
     fi
   elif [ "${radarrMenuSelection}" = '2' ]; then
     endpoint='radarr4k'
@@ -1280,16 +1451,16 @@ setup_radarr() {
         sleep 3
         echo ''
         echo 'Returning you to the Main Menu...'
-        main_menu
+        endpoint_menu
       elif [ "${radarr4kMBConfigPostResponse}" != 'success' ]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
-        main_menu
+        endpoint_menu
       fi
     elif [ "${radarr4kMBConfigTestResponse}" != 'success' ]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
-      main_menu
+      endpoint_menu
     fi
   elif [ "${radarrMenuSelection}" = '3' ]; then
     endpoint='radarr3d'
@@ -1397,16 +1568,16 @@ setup_radarr() {
         sleep 3
         echo ''
         echo 'Returning you to the Main Menu...'
-        main_menu
+        endpoint_menu
       elif [ "${radarr3dMBConfigPostResponse}" != 'success' ]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
-        main_menu
+        endpoint_menu
       fi
     elif [ "${radarr3dMBConfigTestResponse}" != 'success' ]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
-      main_menu
+      endpoint_menu
     fi
   fi
 }
@@ -1432,7 +1603,7 @@ setup_tautulli() {
         sed -i.bak "${tautulliAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='invalid'/" "${scriptname}"
         tautulliAPIKeyStatus='invalid'
       elif [[ "${continuePrompt}" =~ ^(no|n|No|N)$ ]]; then
-        main_menu
+        endpoint_menu
       fi
     elif [ "${tautulliSetupCheck}" = '{}' ]; then
       :
@@ -1513,16 +1684,16 @@ setup_tautulli() {
       sleep 3
       echo ''
       echo 'Returning you to the Main Menu...'
-      main_menu
+      endpoint_menu
     elif [ "${tautulliMBConfigPostResponse}" != 'success' ]; then
       echo -e "${red}Config push failed! Please try again later.${endColor}"
       sleep 3
-      main_menu
+      endpoint_menu
     fi
   elif [ "${tautulliMBConfigTestResponse}" != 'success' ]; then
     echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
     sleep 3
-    main_menu
+    endpoint_menu
   fi
 }
 
