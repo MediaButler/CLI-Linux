@@ -612,6 +612,47 @@ main_menu() {
   echo ''
   read -rp 'Selection: ' mainMenuSelection
   echo ''
+  if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7)$ ]]; then
+    echo -e "${red}You did not specify a valid option!${endColor}"
+    main_menu
+  elif [ "${mainMenuSelection}" = '1' ]; then
+    if [[ -e "${jsonEnvFile}" ]]; then
+      sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
+      plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
+      selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" |jq .value |tr -d '"')
+      plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
+      plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" |jq .value |tr -d '"')
+      userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    elif [[ ! -f "${jsonEnvFile}" ]]; then
+      get_plex_creds
+      check_plex_creds
+    fi
+    if [[ -z "${plexToken}" ]]; then
+      get_plex_token
+    else
+      :
+    fi
+    if [[ -z "${selectedPlexServerName}" ]] || [[ -z "${plexServerMachineID}" ]] || [[ -z "${userMBURL}" ]] || [[ -z "${plexServerMBToken}" ]]; then
+      create_plex_servers_list
+      prompt_for_plex_server
+    else
+      :
+    fi
+    create_env_file
+    endpoint_menu
+  elif [ "${mainMenuSelection}" = '2' ]; then
+    requests_menu
+  elif [ "${mainMenuSelection}" = '3' ]; then
+    issues_menu
+  elif [ "${mainMenuSelection}" = '4' ]; then
+    playback_menu
+  elif [ "${mainMenuSelection}" = '5' ]; then
+    library_menu
+  elif [ "${mainMenuSelection}" = '6' ]; then
+    search_menu
+  elif [ "${mainMenuSelection}" = '7' ]; then
+    exit_menu
+  fi
 }
 
 # Function to display the requests menu
@@ -624,7 +665,7 @@ requests_menu() {
   echo ''
   echo '1) Submit Request'
   echo -e "2) Manage Requests${red}*${endColor}"
-  echo '3) Exit'
+  echo '3) Back to Main Menu'
   echo ''
   read -rp 'Selection: ' requestsMenuSelection
   echo ''
@@ -654,7 +695,7 @@ issues_menu() {
   echo ''
   echo '1) Add Issue'
   echo "2) Manage Issues${red}*${endColor}"
-  echo '3) Exit'
+  echo '3) Back to Main Menu'
   echo ''
   read -rp 'Selection: ' issuesMenuSelection
   echo ''
@@ -684,7 +725,7 @@ playback_menu() {
   echo ''
   echo '1) Playback History'
   echo "2) Now Playing${red}*${endColor}"
-  echo '3) Exit'
+  echo '3) Back to Main Menu'
   echo ''
   read -rp 'Selection: ' playbackMenuSelection
   echo ''
@@ -719,7 +760,7 @@ search_menu() {
   echo '1) TV Show'
   echo '2) Movie'
   echo '3) Music'
-  echo '4) Exit'
+  echo '4) Back to Main Menu'
   echo ''
   read -rp 'Selection: ' searchMenuSelection
   echo ''
@@ -771,7 +812,7 @@ endpoint_menu(){
     echo -e "3) ${red}Tautulli${endColor}"
   fi
   echo '4) Reset'
-  echo '5) Exit'
+  echo '5) Back to Main Menu'
   echo ''
   read -rp 'Selection: ' endpointMenuSelection
   echo ''
@@ -809,7 +850,7 @@ sonarr_menu() {
   else
     echo -e "2) ${red}Sonarr 4K${endColor}"
   fi
-  echo '3) Back to Main Menu'
+  echo '3) Back to Endpoint Menu'
   echo ''
   read -rp 'Selection: ' sonarrMenuSelection
   echo ''
@@ -846,7 +887,7 @@ radarr_menu() {
   else
     echo -e "3) ${red}Radarr 3D${endColor}"
   fi
-  echo '4) Back to Main Menu'
+  echo '4) Back to Endpoint Menu'
   echo ''
   read -rp 'Selection: ' radarrMenuSelection
   echo ''
@@ -1684,47 +1725,47 @@ main() {
   checks
   get_line_numbers
   main_menu
-  if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7)$ ]]; then
-    echo -e "${red}You did not specify a valid option!${endColor}"
-    main_menu
-  elif [ "${mainMenuSelection}" = '1' ]; then
-    if [[ -e "${jsonEnvFile}" ]]; then
-      sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
-      plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
-      selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" |jq .value |tr -d '"')
-      plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
-      plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" |jq .value |tr -d '"')
-      userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" |jq .value |tr -d '"')
-    elif [[ ! -f "${jsonEnvFile}" ]]; then
-      get_plex_creds
-      check_plex_creds
-    fi
-    if [[ -z "${plexToken}" ]]; then
-      get_plex_token
-    else
-      :
-    fi
-    if [[ -z "${selectedPlexServerName}" ]] || [[ -z "${plexServerMachineID}" ]] || [[ -z "${userMBURL}" ]] || [[ -z "${plexServerMBToken}" ]]; then
-      create_plex_servers_list
-      prompt_for_plex_server
-    else
-      :
-    fi
-    create_env_file
-    endpoint_menu
-  elif [ "${mainMenuSelection}" = '2' ]; then
-    requests_menu
-  elif [ "${mainMenuSelection}" = '3' ]; then
-    issues_menu
-  elif [ "${mainMenuSelection}" = '4' ]; then
-    playback_menu
-  elif [ "${mainMenuSelection}" = '5' ]; then
-    library_menu
-  elif [ "${mainMenuSelection}" = '6' ]; then
-    search_menu
-  elif [ "${mainMenuSelection}" = '7' ]; then
-    exit_menu
-  fi
+  #if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7)$ ]]; then
+  #  echo -e "${red}You did not specify a valid option!${endColor}"
+  #  main_menu
+  #elif [ "${mainMenuSelection}" = '1' ]; then
+  #  if [[ -e "${jsonEnvFile}" ]]; then
+  #    sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
+  #    plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
+  #    selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" |jq .value |tr -d '"')
+  #    plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
+  #    plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" |jq .value |tr -d '"')
+  #    userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" |jq .value |tr -d '"')
+  #  elif [[ ! -f "${jsonEnvFile}" ]]; then
+  #    get_plex_creds
+  #    check_plex_creds
+  #  fi
+  #  if [[ -z "${plexToken}" ]]; then
+  #    get_plex_token
+  #  else
+  #    :
+  #  fi
+  #  if [[ -z "${selectedPlexServerName}" ]] || [[ -z "${plexServerMachineID}" ]] || [[ -z "${userMBURL}" ]] || [[ -z "${plexServerMBToken}" ]]; then
+  #    create_plex_servers_list
+  #    prompt_for_plex_server
+  #  else
+  #    :
+  #  fi
+  #  create_env_file
+  #  endpoint_menu
+  #elif [ "${mainMenuSelection}" = '2' ]; then
+  #  requests_menu
+  #elif [ "${mainMenuSelection}" = '3' ]; then
+  #  issues_menu
+  #elif [ "${mainMenuSelection}" = '4' ]; then
+  #  playback_menu
+  #elif [ "${mainMenuSelection}" = '5' ]; then
+  #  library_menu
+  #elif [ "${mainMenuSelection}" = '6' ]; then
+  #  search_menu
+  #elif [ "${mainMenuSelection}" = '7' ]; then
+  #  exit_menu
+  #fi
 }
 
 main
