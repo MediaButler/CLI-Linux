@@ -362,8 +362,8 @@ get_plex_creds() {
 # Function to check that the provided Plex credentials are valid
 check_plex_creds() {
   endpoint='plex'
-  echo "Now we're going to make sure you provided valid credentials..."
   while [ "${plexCredsStatus}" = 'invalid' ]; do
+    echo "Now we're going to make sure you provided valid credentials..."
     if [ "${plexCredsOption}" == '1' ]; then
       curl -s --location --request POST "${mbLoginURL}" \
       -H "${mbClientID}" \
