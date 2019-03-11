@@ -208,7 +208,6 @@ create_dir() {
 cleanup() {
   rm -rf "${tempDir}"/*.txt || true
   rm -rf "${scriptname}".bak || true
-  rm -rf "${jsonEnvFile}" || true
 }
 trap 'cleanup' 0 1 3 6 14 15
 
@@ -262,6 +261,7 @@ reset_plex() {
   plexServerStatus='invalid'
   sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='invalid'/" "${scriptname}"
   mbURLStatus='invalid'
+  rm -rf 
 }
 # Sonarr
 reset_sonarr() {
@@ -787,7 +787,7 @@ endpoint_menu(){
   elif [ "${endpointMenuSelection}" = '4' ]; then
     reset
   elif [ "${endpointMenuSelection}" = '5' ]; then
-    exit_menu
+    main_menu
   fi
 }
 
