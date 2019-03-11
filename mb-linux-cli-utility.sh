@@ -261,7 +261,7 @@ reset_plex() {
   plexServerStatus='invalid'
   sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='invalid'/" "${scriptname}"
   mbURLStatus='invalid'
-  rm -rf 
+  rm -rf "${jsonEnvFile}"
 }
 # Sonarr
 reset_sonarr() {
