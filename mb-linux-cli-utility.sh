@@ -490,7 +490,7 @@ prompt_for_plex_server() {
     userMBApiVersionTwo=$(curl -s --connect-timeout 10 "${convertedURL}"version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $2}')
     userMBApiVersionThree=$(curl -s --connect-timeout 10 "${convertedURL}"version |jq .apiVersion |tr -d '"' |awk -F '.' '{print $3}')
     set -e
-    if [[ "${userMBApiVersionOne}" -ge '1' ]] && [[ "${userMBApiVersionTwo}" -ge '1' ]] && [[ "${userMBApiVersionThree}" -ge '12' ]]; then
+    if [[ "${userMBApiVersionOne}" -gt '1' ]] || [[ "${userMBApiVersionTwo}" -gt '1' ]] || [[ "${userMBApiVersionThree}" -ge '12' ]]; then
       mbAPIStatus='ok'
     else
       mbAPIStatus='bad'
