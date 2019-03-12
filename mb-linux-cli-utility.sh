@@ -43,6 +43,7 @@ jsonEnvFile='data.json'
 plexTokenFile="${tempDir}plex_token.txt"
 plexServersFile="${tempDir}plex_server_list.txt"
 numberedPlexServersFile="${tempDir}numbered_plex_server_list.txt"
+adminCheckFile="${tempDir}admin_check.txt"
 tautulliConfigFile="${tempDir}tautulli_config.txt"
 rawArrProfilesFile="${tempDir}raw_arr_profiles.txt"
 arrProfilesFile="${tempDir}arr_profiles.txt"
@@ -208,6 +209,7 @@ create_dir() {
 cleanup() {
   rm -rf "${tempDir}"/*.txt || true
   rm -rf "${scriptname}".bak || true
+  rm -rf "${tempDir}"/pacapt || true
 }
 trap 'cleanup' 0 1 3 6 14 15
 
@@ -539,6 +541,20 @@ prompt_for_plex_server() {
   fi
 }
 
+# Function to determine whether user has admin permissions
+check_admin() {
+  curl -s --location --request GET "${userMBURL}user/@me/" \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq .permissions > "${adminCheckFile}"
+  adminCheckResponse=$(grep -i admin "${adminCheckFile}" |awk '{print $1}' |tr -d '"')
+  if [ "${adminCheckResponse}" = 'ADMIN' ]; then
+    isAdmin='true'
+  elif [ "${adminCheckResponse}" != 'ADMIN' ]; then
+    isAdmin='false'
+  fi
+}
+
 # Function to create environment variables file
 create_env_file() {
   echo "plexToken	${plexToken}" > "${envFile}"
@@ -546,6 +562,7 @@ create_env_file() {
   echo "mbToken	${plexServerMBToken}" >> "${envFile}"
   echo "machineId	${plexServerMachineID}" >> "${envFile}"
   echo "mbURL	${userMBURL}" >> "${envFile}"
+  echo "admin	${isAdmin}" >> "${envFile}"
   jq '. | split("\n") | map( split("\t") | {name: .[0], value: .[1]} ) | {data: .} ' -R -s "${envFile}" > "${jsonEnvFile}"
 }
 
@@ -616,30 +633,42 @@ main_menu() {
     echo -e "${red}You did not specify a valid option!${endColor}"
     main_menu
   elif [ "${mainMenuSelection}" = '1' ]; then
-    if [[ -e "${jsonEnvFile}" ]]; then
-      sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
-      plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
-      selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" |jq .value |tr -d '"')
-      plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
-      plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" |jq .value |tr -d '"')
-      userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" |jq .value |tr -d '"')
-    elif [[ ! -f "${jsonEnvFile}" ]]; then
-      get_plex_creds
-      check_plex_creds
+    #if [[ -e "${jsonEnvFile}" ]]; then
+    #  sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
+    #  plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    #  selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    #  plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    #  plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    #  userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    #  isAdmin=$(jq '.data[] | select(.name=="isAdmin")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    #elif [[ ! -f "${jsonEnvFile}" ]]; then
+    #  get_plex_creds
+    #  check_plex_creds
+    #fi
+    #if [[ -z "${plexToken}" ]]; then
+    #  get_plex_token
+    #else
+    #  :
+    #fi
+    #if [[ -z "${selectedPlexServerName}" ]] || [[ -z "${plexServerMachineID}" ]] || [[ -z "${userMBURL}" ]] || [[ -z "${plexServerMBToken}" ]]; then
+    #  create_plex_servers_list
+    #  prompt_for_plex_server
+    #else
+    #  :
+    #fi
+    #if [[ -z "${isAdmin}" ]]; then
+    #  check_admin
+    #else
+    #  :
+    #fi
+    #create_env_file
+    if [ "${isAdmin}" != 'true' ]; then
+      echo -e "${red}You do not have permission to access this menu!${endColor}"
+      sleep 3
+      main_menu
+    elif [ "${isAdmin}" = 'true' ]; then
+      endpoint_menu
     fi
-    if [[ -z "${plexToken}" ]]; then
-      get_plex_token
-    else
-      :
-    fi
-    if [[ -z "${selectedPlexServerName}" ]] || [[ -z "${plexServerMachineID}" ]] || [[ -z "${userMBURL}" ]] || [[ -z "${plexServerMBToken}" ]]; then
-      create_plex_servers_list
-      prompt_for_plex_server
-    else
-      :
-    fi
-    create_env_file
-    endpoint_menu
   elif [ "${mainMenuSelection}" = '2' ]; then
     requests_menu
   elif [ "${mainMenuSelection}" = '3' ]; then
@@ -661,7 +690,7 @@ requests_menu() {
   echo '*            ~Requests Menu~            *'
   echo '*****************************************'
   echo 'Please select from the following options:'
-  echo "        (${red}*${endColor} indicates Admin only)         "
+  echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
   echo '1) Submit Request'
   echo -e "2) Manage Requests${red}*${endColor}"
@@ -677,9 +706,15 @@ requests_menu() {
     echo -e "${red}Not setup yet!${endColor}"
     exit 0
   elif [ "${mainMenuSelection}" = '2' ]; then
-    #manage_requests_menu
-    echo -e "${red}Not setup yet!${endColor}"
-    exit 0
+    if [ "${isAdmin}" != 'true' ]; then
+      echo -e "${red}You do not have permission to access this menu!${endColor}"
+      sleep 3
+      main_menu
+    elif [ "${isAdmin}" = 'true' ]; then
+      #manage_requests_menu
+      echo -e "${red}Not setup yet!${endColor}"
+      exit 0
+    fi
   elif [ "${mainMenuSelection}" = '3' ]; then
     main_menu
   fi
@@ -707,9 +742,15 @@ issues_menu() {
     echo -e "${red}Not setup yet!${endColor}"
     exit 0
   elif [ "${issuesMenuSelection}" = '2' ]; then
-    #manage_issues_menu
-    echo -e "${red}Not setup yet!${endColor}"
-    exit 0
+    if [ "${isAdmin}" != 'true' ]; then
+      echo -e "${red}You do not have permission to access this menu!${endColor}"
+      sleep 3
+      main_menu
+    elif [ "${isAdmin}" = 'true' ]; then
+      #manage_issues_menu
+      echo -e "${red}Not setup yet!${endColor}"
+      exit 0
+    fi
   elif [ "${issuesMenuSelection}" = '3' ]; then
     main_menu
   fi
@@ -737,12 +778,23 @@ playback_menu() {
     echo -e "${red}Not setup yet!${endColor}"
     exit 0
   elif [ "${playbackMenuSelection}" = '2' ]; then
-    #now_playing
-    echo -e "${red}Not setup yet!${endColor}"
-    exit 0
+    if [ "${isAdmin}" != 'true' ]; then
+      echo -e "${red}You do not have permission to access this menu!${endColor}"
+      sleep 3
+      main_menu
+    elif [ "${isAdmin}" = 'true' ]; then
+      #now_playing
+      echo -e "${red}Not setup yet!${endColor}"
+      exit 0
+    fi
   elif [ "${playbackMenuSelection}" = '3' ]; then
     main_menu
   fi
+}
+
+# Function to generate numbered list of Plex libraries
+create_plex_libraries_list() {
+  foo
 }
 
 # Function to display the library menu
@@ -1724,48 +1776,36 @@ main() {
   create_dir
   checks
   get_line_numbers
+  if [[ -e "${jsonEnvFile}" ]]; then
+    sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
+    plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" |jq .value |tr -d '"')
+    isAdmin=$(jq '.data[] | select(.name=="isAdmin")' "${jsonEnvFile}" |jq .value |tr -d '"')
+  elif [[ ! -f "${jsonEnvFile}" ]]; then
+    get_plex_creds
+    check_plex_creds
+  fi
+  if [[ -z "${plexToken}" ]]; then
+    get_plex_token
+  else
+    :
+  fi
+  if [[ -z "${selectedPlexServerName}" ]] || [[ -z "${plexServerMachineID}" ]] || [[ -z "${userMBURL}" ]] || [[ -z "${plexServerMBToken}" ]]; then
+    create_plex_servers_list
+    prompt_for_plex_server
+  else
+    :
+  fi
+  if [[ -z "${isAdmin}" ]]; then
+    check_admin
+  else
+    :
+  fi
+  create_env_file
   main_menu
-  #if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7)$ ]]; then
-  #  echo -e "${red}You did not specify a valid option!${endColor}"
-  #  main_menu
-  #elif [ "${mainMenuSelection}" = '1' ]; then
-  #  if [[ -e "${jsonEnvFile}" ]]; then
-  #    sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
-  #    plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
-  #    selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" |jq .value |tr -d '"')
-  #    plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
-  #    plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" |jq .value |tr -d '"')
-  #    userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" |jq .value |tr -d '"')
-  #  elif [[ ! -f "${jsonEnvFile}" ]]; then
-  #    get_plex_creds
-  #    check_plex_creds
-  #  fi
-  #  if [[ -z "${plexToken}" ]]; then
-  #    get_plex_token
-  #  else
-  #    :
-  #  fi
-  #  if [[ -z "${selectedPlexServerName}" ]] || [[ -z "${plexServerMachineID}" ]] || [[ -z "${userMBURL}" ]] || [[ -z "${plexServerMBToken}" ]]; then
-  #    create_plex_servers_list
-  #    prompt_for_plex_server
-  #  else
-  #    :
-  #  fi
-  #  create_env_file
-  #  endpoint_menu
-  #elif [ "${mainMenuSelection}" = '2' ]; then
-  #  requests_menu
-  #elif [ "${mainMenuSelection}" = '3' ]; then
-  #  issues_menu
-  #elif [ "${mainMenuSelection}" = '4' ]; then
-  #  playback_menu
-  #elif [ "${mainMenuSelection}" = '5' ]; then
-  #  library_menu
-  #elif [ "${mainMenuSelection}" = '6' ]; then
-  #  search_menu
-  #elif [ "${mainMenuSelection}" = '7' ]; then
-  #  exit_menu
-  #fi
 }
 
 main
