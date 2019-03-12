@@ -44,7 +44,6 @@ plexTokenFile="${tempDir}plex_token.txt"
 plexServersFile="${tempDir}plex_server_list.txt"
 numberedPlexServersFile="${tempDir}numbered_plex_server_list.txt"
 adminCheckFile="${tempDir}admin_check.txt"
-tautulliConfigFile="${tempDir}tautulli_config.txt"
 rawArrProfilesFile="${tempDir}raw_arr_profiles.txt"
 arrProfilesFile="${tempDir}arr_profiles.txt"
 numberedArrProfilesFile="${tempDir}numbered_arr_profiles.txt"
@@ -56,6 +55,8 @@ sonarr4kConfigFile="${tempDir}sonarr4k_config.txt"
 radarrConfigFile="${tempDir}radarr_config.txt"
 radarr4kConfigFile="${tempDir}radarr4k_config.txt"
 radarr3dConfigFile="${tempDir}radarr3d_config.txt"
+tautulliConfigFile="${tempDir}tautulli_config.txt"
+nowPlayingRawFile="${tempDir}now_playing_raw.txt"
 
 # Define text colors
 readonly blu='\e[34m'
@@ -1769,6 +1770,48 @@ setup_tautulli() {
     sleep 3
     endpoint_menu
   fi
+}
+
+# Function to gather NowPlaying stats from Tautulli and display it
+now_playing() {
+  endpoint='tautulli'
+  numberOfCurrentStreams=$(curl -s --location --request GET "${userMBURL}${endpoint}/activity" \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq .data.sessions[].title |wc -l)
+  for stream in $(1.."${numberOfCurrentStreams}"); do
+    curl -s --location --request GET "${userMBURL}${endpoint}/activity" \
+    -H "${mbClientID}" \
+    -H "Authorization: Bearer ${plexServerMBToken}" |jq .data.sessions["${stream}"].title > "${nowPlayingRawFile}"
+    mediaType=$(jq .media_type "${nowPlayingRawFile}" |tr -d '"')
+    if [ "$mediaType" = 'movie' ]; then
+      playbackStatus=$(jq .state "${nowPlayingRawFile}" |tr -d '"')
+      username=$(jq .username "${nowPlayingRawFile}" |tr -d '"')
+      ipAddress=$(jq .ip_address "${nowPlayingRawFile}" |tr -d '"')
+      device=$(jq .player "${nowPlayingRawFile}" |tr -d '"')
+      title=$(jq .title "${nowPlayingRawFile}" |tr -d '"')
+      titleYear=$(jq .year "${nowPlayingRawFile}" |tr -d '"')
+      playing=$(echo "${title} (${titleYear})")
+      playbackType=$(jq .transcode_decision "${nowPlayingRawFile}" |tr -d '"')
+      profile=$(jq .quality_profile "${nowPlayingRawFile}" |tr -d '"')
+      sessionKey=$(jq .session_key "${nowPlayingRawFile}" |tr -d '"')
+    elif [ "$mediaType" = 'episode' ]; then
+      playbackStatus=$(jq .state "${nowPlayingRawFile}" |tr -d '"')
+      username=$(jq .username "${nowPlayingRawFile}" |tr -d '"')
+      ipAddress=$(jq .ip_address "${nowPlayingRawFile}" |tr -d '"')
+      device=$(jq .player "${nowPlayingRawFile}" |tr -d '"')
+      showName=$(jq .grandparent_title "${nowPlayingRawFile}" |tr -d '"')
+      seasonNum=$(jq .parent_title "${nowPlayingRawFile}" |tr -d '"')
+      mediaIndex=$(jq .media_index "${nowPlayingRawFile}" |tr -d '"')
+      episodeNum=$(printf -v episodeNum "%02d" ${mediaIndex}; echo ${episodeNum})
+      title=$(jq .title "${nowPlayingRawFile}" |tr -d '"')
+      playing=$(echo "${title} (${titleYear})")
+      playbackType=$(jq .transcode_decision "${nowPlayingRawFile}" |tr -d '"')
+      profile=$(jq .quality_profile "${nowPlayingRawFile}" |tr -d '"')
+      sessionKey=$(jq .session_key "${nowPlayingRawFile}" |tr -d '"')
+    elif [ "$mediaType" = 'track' ]; then
+      foo
+    fi
+  done
 }
 
 # Main function to run all functions
