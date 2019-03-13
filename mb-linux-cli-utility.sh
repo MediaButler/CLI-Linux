@@ -15,7 +15,7 @@ plexCredsStatus='ok'
 # Set initial Plex server selection status
 plexServerStatus='ok'
 # Set initial MediaButler URL status
-mbURLStatus='invalid'
+mbURLStatus='ok'
 # Set initial Tautulli credentials status
 tautulliURLStatus='invalid'
 tautulliAPIKeyStatus='invalid'
@@ -1750,8 +1750,8 @@ now_playing() {
   numberOfCurrentStreams=$(curl -s --location --request GET "${userMBURL}${endpoint}/activity" \
   -H "${mbClientID}" \
   -H "Authorization: Bearer ${plexServerMBToken}" |jq .data.sessions[].title |wc -l)
-  if [[ $((${numberOfCurrentStreams}-1)) -gt '0' ]]; then
-    for stream in $(seq 0 "${numberOfCurrentStreams}"); do
+  if [[ ${numberOfCurrentStreams} -gt '0' ]]; then
+    for stream in $(seq 0 $((${numberOfCurrentStreams}-1))); do
       curl -s --location --request GET "${userMBURL}${endpoint}/activity" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" |jq .data.sessions["${stream}"] > "${nowPlayingRawFile}"
@@ -1766,20 +1766,19 @@ now_playing() {
         titleYear=$(jq .year "${nowPlayingRawFile}" |tr -d '"')
         playing=$(echo "${title} (${titleYear})")
         transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" |tr -d '"')
-        #transcodeDecision2=( $transcodeDecision )
         playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
         profile=$(jq .quality_profile "${nowPlayingRawFile}" |tr -d '"')
         sessionKey=$(jq .session_key "${nowPlayingRawFile}" |tr -d '"')
-        echo "============================================================" > "${nowPlayingDataFile}"
-        echo "Playback: ${playbackStatus^}" >> "${nowPlayingDataFile}"
-        echo "User: ${username}" >> "${nowPlayingDataFile}"
-        echo "IP Address: ${ipAddress}" >> "${nowPlayingDataFile}"
-        echo "Device: ${device}" >> "${nowPlayingDataFile}"
-        echo "Playing: ${title} (${titleYear})" >> "${nowPlayingDataFile}"
-        echo "Playback Type: ${playbackType}" >> "${nowPlayingDataFile}"
-        echo "Proflie: ${profile}" >> "${nowPlayingDataFile}"
-        echo "Session Key: ${sessionKey}" >> "${nowPlayingDataFile}"
-        echo "============================================================" >> "${nowPlayingDataFile}"
+        echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
+        echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
+        echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
+        echo -e "${org}IP Address:${endColor} ${ipAddress}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Device:${endColor} ${device}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playing:${endColor} ${title} (${titleYear})" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playback Type:${endColor} ${playbackType}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Proflie:${endColor} ${profile}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
+        echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
         echo ''
         cat "${nowPlayingDataFile}"
       elif [ "$mediaType" = 'episode' ]; then
@@ -1795,24 +1794,46 @@ now_playing() {
         title=$(jq .title "${nowPlayingRawFile}" |tr -d '"')
         playing=$(echo "${showName} - S${seasonNum}E${episodeNum} - ${title}")
         transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" |tr -d '"')
-        #transcodeDecision2=( $transcodeDecision )
         playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
         profile=$(jq .quality_profile "${nowPlayingRawFile}" |tr -d '"')
         sessionKey=$(jq .session_key "${nowPlayingRawFile}" |tr -d '"')
-        echo "============================================================" > "${nowPlayingDataFile}"
-        echo "Playback: ${playbackStatus^}" >> "${nowPlayingDataFile}"
-        echo "User: ${username}" >> "${nowPlayingDataFile}"
-        echo "IP Address: ${ipAddress}" >> "${nowPlayingDataFile}"
-        echo "Device: ${device}" >> "${nowPlayingDataFile}"
-        echo "Playing: ${playing}" >> "${nowPlayingDataFile}"
-        echo "Playback Type: ${playbackType}" >> "${nowPlayingDataFile}"
-        echo "Proflie: ${profile}" >> "${nowPlayingDataFile}"
-        echo "Session Key: ${sessionKey}" >> "${nowPlayingDataFile}"
-        echo "============================================================" >> "${nowPlayingDataFile}"
+        echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
+        echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
+        echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
+        echo -e "${org}IP Address:${endColor} ${ipAddress}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Device:${endColor} ${device}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playing:${endColor} ${playing}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playback Type:${endColor} ${playbackType}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Proflie:${endColor} ${profile}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
+        echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
         echo ''
         cat "${nowPlayingDataFile}"
       elif [ "$mediaType" = 'track' ]; then
-        foo
+        playbackStatus=$(jq .state "${nowPlayingRawFile}" |tr -d '"')
+        username=$(jq .username "${nowPlayingRawFile}" |tr -d '"')
+        ipAddress=$(jq .ip_address "${nowPlayingRawFile}" |tr -d '"')
+        device=$(jq .player "${nowPlayingRawFile}" |tr -d '"')
+        artistName=$(jq .grandparent_title "${nowPlayingRawFile}" |tr -d '"')
+        albumName=$(jq .parent_title "${nowPlayingRawFile}" |tr -d '"')
+        trackName=$(jq .title "${nowPlayingRawFile}" |tr -d '"')
+        playing=$(echo "${artistName} - ${albumName} - ${trackName}")
+        transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" |tr -d '"')
+        playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
+        profile=$(jq .quality_profile "${nowPlayingRawFile}" |tr -d '"')
+        sessionKey=$(jq .session_key "${nowPlayingRawFile}" |tr -d '"')
+        echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
+        echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
+        echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
+        echo -e "${org}IP Address:${endColor} ${ipAddress}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Device:${endColor} ${device}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playing:${endColor} ${playing}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playback Type:${endColor} ${playbackType}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Proflie:${endColor} ${profile}" >> "${nowPlayingDataFile}"
+        echo -e"${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
+        echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
+        echo ''
+        cat "${nowPlayingDataFile}"
       fi
     done
   elif [[ "${numberOfCurrentStreams}" -le '0' ]]; then
