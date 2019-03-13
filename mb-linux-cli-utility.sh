@@ -11,11 +11,11 @@ mbDiscoverURL='https://auth.mediabutler.io/login/discover'
 mbClientID='MB-Client-Identifier: 4d656446-fbe7-4545-b754-1adfb8eb554e'
 mbClientIDShort='4d656446-fbe7-4545-b754-1adfb8eb554e'
 # Set initial Plex credentials status
-plexCredsStatus='ok'
+plexCredsStatus='invalid'
 # Set initial Plex server selection status
-plexServerStatus='ok'
+plexServerStatus='invalid'
 # Set initial MediaButler URL status
-mbURLStatus='ok'
+mbURLStatus='invalid'
 # Set initial Tautulli credentials status
 tautulliURLStatus='invalid'
 tautulliAPIKeyStatus='invalid'
@@ -1830,7 +1830,7 @@ now_playing() {
         echo -e "${org}Playing:${endColor} ${playing}" >> "${nowPlayingDataFile}"
         echo -e "${org}Playback Type:${endColor} ${playbackType}" >> "${nowPlayingDataFile}"
         echo -e "${org}Proflie:${endColor} ${profile}" >> "${nowPlayingDataFile}"
-        echo -e"${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
         echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
         echo ''
         cat "${nowPlayingDataFile}"
