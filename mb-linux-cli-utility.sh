@@ -11,9 +11,9 @@ mbDiscoverURL='https://auth.mediabutler.io/login/discover'
 mbClientID='MB-Client-Identifier: 4d656446-fbe7-4545-b754-1adfb8eb554e'
 mbClientIDShort='4d656446-fbe7-4545-b754-1adfb8eb554e'
 # Set initial Plex credentials status
-plexCredsStatus='ok'
+plexCredsStatus='invalid'
 # Set initial Plex server selection status
-plexServerStatus='ok'
+plexServerStatus='invalid'
 # Set initial MediaButler URL status
 mbURLStatus='invalid'
 # Set initial Tautulli credentials status
@@ -58,6 +58,10 @@ radarr3dConfigFile="${tempDir}radarr3d_config.txt"
 tautulliConfigFile="${tempDir}tautulli_config.txt"
 nowPlayingRawFile="${tempDir}now_playing_raw.txt"
 nowPlayingDataFile="${tempDir}now_playing_data.txt"
+historyRawFile="${tempDir}history_raw.txt"
+historyDataFile="${tempDir}history_data.txt"
+durationDataFile="${tempDir}duration_data.txt"
+#combinedHistoryDataFile="${tempDir}combined_history_data.txt"
 
 # Define text colors
 readonly blu='\e[34m'
@@ -68,6 +72,7 @@ readonly ylw='\e[33m'
 readonly org='\e[38;5;202m'
 readonly lorg='\e[38;5;130m'
 readonly mgt='\e[35m'
+readonly bold='\e[1m'
 readonly endColor='\e[0m'
 
 # Script Information
@@ -488,7 +493,8 @@ prompt_for_plex_server() {
   if ! [[ "${mbURLConfirmation}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
     echo -e "${red}Please specify yes, y, no, or n.${endColor}"
   elif [[ "${mbURLConfirmation}" =~ ^(yes|y|Yes|Y)$ ]]; then
-    :
+    sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='ok'/" "${scriptname}"
+    mbURLStatus='ok'
   elif [[ "${mbURLConfirmation}" =~ ^(no|n|No|N)$ ]]; then
     echo 'Please enter the correct MediaButler URL:'
     read -r providedURL
@@ -592,6 +598,7 @@ create_env_file() {
 exit_menu() {
   echo -e "${red}This will exit the program and any unfinished config setup will be lost.${endColor}"
   echo -e "${ylw}Are you sure you wish to exit?${endColor}"
+  echo ''
   echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
   read -r exitPrompt
   if ! [[ "${exitPrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
@@ -632,7 +639,7 @@ main_menu() {
   echo ''
   read -rp 'Selection: ' mainMenuSelection
   echo ''
-  if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7)$ ]]; then
+  if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7|8)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
     main_menu
   elif [ "${mainMenuSelection}" = '1' ]; then
@@ -750,9 +757,7 @@ playback_menu() {
     echo -e "${red}You did not specify a valid option!${endColor}"
     playback_menu
   elif [ "${playbackMenuSelection}" = '1' ]; then
-    #playback_history
-    echo -e "${red}Not setup yet!${endColor}"
-    exit 0
+    playback_history
   elif [ "${playbackMenuSelection}" = '2' ]; then
     if [ "${isAdmin}" != 'true' ]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
@@ -760,8 +765,6 @@ playback_menu() {
       main_menu
     elif [ "${isAdmin}" = 'true' ]; then
       now_playing
-      #echo -e "${red}Not setup yet!${endColor}"
-      #exit 0
     fi
   elif [ "${playbackMenuSelection}" = '3' ]; then
     main_menu
@@ -1750,8 +1753,8 @@ now_playing() {
   numberOfCurrentStreams=$(curl -s --location --request GET "${userMBURL}${endpoint}/activity" \
   -H "${mbClientID}" \
   -H "Authorization: Bearer ${plexServerMBToken}" |jq .data.sessions[].title |wc -l)
-  if [[ $((${numberOfCurrentStreams}-1)) -gt '0' ]]; then
-    for stream in $(seq 0 "${numberOfCurrentStreams}"); do
+  if [[ ${numberOfCurrentStreams} -gt '0' ]]; then
+    for stream in $(seq 0 $((${numberOfCurrentStreams}-1))); do
       curl -s --location --request GET "${userMBURL}${endpoint}/activity" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" |jq .data.sessions["${stream}"] > "${nowPlayingRawFile}"
@@ -1766,21 +1769,19 @@ now_playing() {
         titleYear=$(jq .year "${nowPlayingRawFile}" |tr -d '"')
         playing=$(echo "${title} (${titleYear})")
         transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" |tr -d '"')
-        #transcodeDecision2=( $transcodeDecision )
         playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
         profile=$(jq .quality_profile "${nowPlayingRawFile}" |tr -d '"')
         sessionKey=$(jq .session_key "${nowPlayingRawFile}" |tr -d '"')
-        echo "============================================================" > "${nowPlayingDataFile}"
-        echo "Playback: ${playbackStatus^}" >> "${nowPlayingDataFile}"
-        echo "User: ${username}" >> "${nowPlayingDataFile}"
-        echo "IP Address: ${ipAddress}" >> "${nowPlayingDataFile}"
-        echo "Device: ${device}" >> "${nowPlayingDataFile}"
-        echo "Playing: ${title} (${titleYear})" >> "${nowPlayingDataFile}"
-        echo "Playback Type: ${playbackType}" >> "${nowPlayingDataFile}"
-        echo "Proflie: ${profile}" >> "${nowPlayingDataFile}"
-        echo "Session Key: ${sessionKey}" >> "${nowPlayingDataFile}"
-        echo "============================================================" >> "${nowPlayingDataFile}"
-        echo ''
+        echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
+        echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
+        echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
+        echo -e "${org}IP Address:${endColor} ${ipAddress}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Device:${endColor} ${device}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playing:${endColor} ${title} (${titleYear})" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playback Type:${endColor} ${playbackType}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Proflie:${endColor} ${profile}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
+        echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
         cat "${nowPlayingDataFile}"
       elif [ "$mediaType" = 'episode' ]; then
         playbackStatus=$(jq .state "${nowPlayingRawFile}" |tr -d '"')
@@ -1788,35 +1789,126 @@ now_playing() {
         ipAddress=$(jq .ip_address "${nowPlayingRawFile}" |tr -d '"')
         device=$(jq .player "${nowPlayingRawFile}" |tr -d '"')
         showName=$(jq .grandparent_title "${nowPlayingRawFile}" |tr -d '"')
-        parentTitle=$(jq .parent_title "${nowPlayingRawFile}" |tr -d '"' |awk '{print $2}')
+        parentTitle=$(jq .parent_media_index "${nowPlayingRawFile}")
         seasonNum=$(printf "%02d" ${parentTitle})
         mediaIndex=$(jq .media_index "${nowPlayingRawFile}" |tr -d '"')
         episodeNum=$(printf "%02d" ${mediaIndex})
         title=$(jq .title "${nowPlayingRawFile}" |tr -d '"')
         playing=$(echo "${showName} - S${seasonNum}E${episodeNum} - ${title}")
         transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" |tr -d '"')
-        #transcodeDecision2=( $transcodeDecision )
         playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
         profile=$(jq .quality_profile "${nowPlayingRawFile}" |tr -d '"')
         sessionKey=$(jq .session_key "${nowPlayingRawFile}" |tr -d '"')
-        echo "============================================================" > "${nowPlayingDataFile}"
-        echo "Playback: ${playbackStatus^}" >> "${nowPlayingDataFile}"
-        echo "User: ${username}" >> "${nowPlayingDataFile}"
-        echo "IP Address: ${ipAddress}" >> "${nowPlayingDataFile}"
-        echo "Device: ${device}" >> "${nowPlayingDataFile}"
-        echo "Playing: ${playing}" >> "${nowPlayingDataFile}"
-        echo "Playback Type: ${playbackType}" >> "${nowPlayingDataFile}"
-        echo "Proflie: ${profile}" >> "${nowPlayingDataFile}"
-        echo "Session Key: ${sessionKey}" >> "${nowPlayingDataFile}"
-        echo "============================================================" >> "${nowPlayingDataFile}"
-        echo ''
+        echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
+        echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
+        echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
+        echo -e "${org}IP Address:${endColor} ${ipAddress}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Device:${endColor} ${device}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playing:${endColor} ${playing}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playback Type:${endColor} ${playbackType}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Proflie:${endColor} ${profile}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
+        echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
         cat "${nowPlayingDataFile}"
       elif [ "$mediaType" = 'track' ]; then
-        foo
+        playbackStatus=$(jq .state "${nowPlayingRawFile}" |tr -d '"')
+        username=$(jq .username "${nowPlayingRawFile}" |tr -d '"')
+        ipAddress=$(jq .ip_address "${nowPlayingRawFile}" |tr -d '"')
+        device=$(jq .player "${nowPlayingRawFile}" |tr -d '"')
+        artistName=$(jq .grandparent_title "${nowPlayingRawFile}" |tr -d '"')
+        albumName=$(jq .parent_title "${nowPlayingRawFile}" |tr -d '"')
+        trackName=$(jq .title "${nowPlayingRawFile}" |tr -d '"')
+        playing=$(echo "${artistName} - ${albumName} - ${trackName}")
+        transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" |tr -d '"')
+        playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
+        profile=$(jq .quality_profile "${nowPlayingRawFile}" |tr -d '"')
+        sessionKey=$(jq .session_key "${nowPlayingRawFile}" |tr -d '"')
+        echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
+        echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
+        echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
+        echo -e "${org}IP Address:${endColor} ${ipAddress}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Device:${endColor} ${device}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playing:${endColor} ${playing}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Playback Type:${endColor} ${playbackType}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Proflie:${endColor} ${profile}" >> "${nowPlayingDataFile}"
+        echo -e "${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
+        echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
+        cat "${nowPlayingDataFile}"
       fi
     done
   elif [[ "${numberOfCurrentStreams}" -le '0' ]]; then
     echo -e "${org}There are no active streams at this time.${endColor}"
+    sleep 3
+    playback_menu
+  fi
+}
+
+# Function to gather NowPlaying stats from Tautulli and display it
+playback_history() {
+  endpoint='tautulli'
+  curl -s --location --request GET "${userMBURL}${endpoint}/history" \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq . > "${historyRawFile}"
+  numberOfHistoryItems=$(jq .response.data.data[].title "${historyRawFile}" |wc -l)
+  echo -e "${lblu}============================================================${endColor}" > "${historyDataFile}"
+  if [[ ${numberOfHistoryItems} -gt '0' ]]; then
+    totalDuration=$(jq .response.data.total_duration "${historyRawFile}" |tr -d '"')
+    shownDuration=$(jq .response.data.filter_duration "${historyRawFile}" |tr -d '"')
+    echo -e "${bold}Total Duration - Shown Duration${endColor}" > "${durationDataFile}"
+    echo -e "${grn}${totalDuration} - ${shownDuration}${endColor}" >> "${durationDataFile}"
+    column -ts- "${durationDataFile}" >> "${historyDataFile}"
+    for item in $(seq 0 $((${numberOfHistoryItems}-1))); do
+      mediaType=$(jq .response.data.data["${item}"].media_type "${historyRawFile}" |tr -d '"')
+      if [ "$mediaType" = 'movie' ]; then
+        platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" |tr -d '"')
+        device=$(jq .response.data.data["${item}"].player "${historyRawFile}" |tr -d '"')
+        title=$(jq .response.data.data["${item}"].title "${historyRawFile}" |tr -d '"')
+        titleYear=$(jq .response.data.data["${item}"].year "${historyRawFile}" |tr -d '"')
+        playing=$(echo "${title} (${titleYear})")
+        transcodeDecision=$(jq .response.data.data["${item}"].transcode_decision "${historyRawFile}" |tr -d '"')
+        playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
+        startTime=$(jq .response.data.data["${item}"].started "${historyRawFile}" |tr -d '"')
+        stoppedTime=$(jq .response.data.data["${item}"].stopped "${historyRawFile}" |tr -d '"')
+        duration=$((${stoppedTime}-${startTime}))
+        friendlyDuration=$(echo "[$(($duration / 60))m $(($duration % 60))s]")
+        echo -e "${bold}${title} (${titleYear})${endColor}" >> "${historyDataFile}"
+        echo -e "${playbackType} - ${platform} - ${device} ${friendlyDuration}" >> "${historyDataFile}"
+      elif [ "$mediaType" = 'episode' ]; then
+        platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" |tr -d '"')
+        device=$(jq .response.data.data["${item}"].player "${historyRawFile}" |tr -d '"')
+        showName=$(jq .response.data.data["${item}"].grandparent_title "${historyRawFile}" |tr -d '"')
+        parentTitle=$(jq .response.data.data["${item}"].parent_media_index "${historyRawFile}")
+        seasonNum=$(printf "%02d" ${parentTitle})
+        mediaIndex=$(jq .response.data.data["${item}"].media_index "${historyRawFile}")
+        episodeNum=$(printf "%02d" ${mediaIndex})
+        title=$(jq .response.data.data["${item}"].title "${historyRawFile}" |tr -d '"')
+        playing=$(echo "${showName} - S${seasonNum}E${episodeNum} - ${title}")
+        transcodeDecision=$(jq .response.data.data["${item}"].transcode_decision "${historyRawFile}" |tr -d '"')
+        playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
+        startTime=$(jq .response.data.data["${item}"].started "${historyRawFile}" |tr -d '"')
+        stoppedTime=$(jq .response.data.data["${item}"].stopped "${historyRawFile}" |tr -d '"')
+        duration=$((${stoppedTime}-${startTime}))
+        friendlyDuration=$(echo "[$(($duration / 60))m $(($duration % 60))s]")
+        echo -e "${bold}${playing}${endColor}" >> "${historyDataFile}"
+        echo -e "${playbackType} - ${platform} - ${device} ${friendlyDuration}" >> "${historyDataFile}"
+      elif [ "$mediaType" = 'track' ]; then
+        platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" |tr -d '"')
+        device=$(jq .response.data.data["${item}"].player "${historyRawFile}" |tr -d '"')
+        playing=$(jq .response.data.data["${item}"].full_title "${historyRawFile}" |tr -d '"')
+        transcodeDecision=$(jq .response.data.data["${item}"].transcode_decision "${historyRawFile}" |tr -d '"')
+        playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
+        startTime=$(jq .response.data.data["${item}"].started "${historyRawFile}" |tr -d '"')
+        stoppedTime=$(jq .response.data.data["${item}"].stopped "${historyRawFile}" |tr -d '"')
+        duration=$((${stoppedTime}-${startTime}))
+        friendlyDuration=$(echo "[$(($duration / 60))m $(($duration % 60))s]")
+        echo -e "${bold}${playing}${endColor}" >> "${historyDataFile}"
+        echo -e "${playbackType} - ${platform} - ${device} ${friendlyDuration}" >> "${historyDataFile}"
+      fi
+    done
+    echo -e "${lblu}============================================================${endColor}" >> "${historyDataFile}"
+    cat "${historyDataFile}"
+  elif [[ "${numberOfHistoryItems}" -le '0' ]]; then
+    echo -e "${org}There is no playback history at this time.${endColor}"
     sleep 3
     playback_menu
   fi
@@ -1829,6 +1921,8 @@ main() {
   get_line_numbers
   if [[ -e "${jsonEnvFile}" ]]; then
     sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
+    sed -i.bak "${plexServerStatusLineNum} s/plexServerStatus='[^']*'/plexServerStatus='ok'/" "${scriptname}"
+    sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='ok'/" "${scriptname}"
     plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
     selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" |jq .value |tr -d '"')
     plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" |jq .value |tr -d '"')
