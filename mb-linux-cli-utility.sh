@@ -493,7 +493,8 @@ prompt_for_plex_server() {
   if ! [[ "${mbURLConfirmation}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
     echo -e "${red}Please specify yes, y, no, or n.${endColor}"
   elif [[ "${mbURLConfirmation}" =~ ^(yes|y|Yes|Y)$ ]]; then
-    :
+    sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='ok'/" "${scriptname}"
+    mbURLStatus='ok'
   elif [[ "${mbURLConfirmation}" =~ ^(no|n|No|N)$ ]]; then
     echo 'Please enter the correct MediaButler URL:'
     read -r providedURL
