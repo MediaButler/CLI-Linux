@@ -637,7 +637,7 @@ main_menu() {
   echo ''
   read -rp 'Selection: ' mainMenuSelection
   echo ''
-  if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7)$ ]]; then
+  if ! [[ "${mainMenuSelection}" =~ ^(1|2|3|4|5|6|7|8)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
     main_menu
   elif [ "${mainMenuSelection}" = '1' ]; then
