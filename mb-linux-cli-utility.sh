@@ -1838,6 +1838,7 @@ now_playing() {
     done
   elif [[ "${numberOfCurrentStreams}" -le '0' ]]; then
     echo -e "${org}There are no active streams at this time.${endColor}"
+    echo ''
     sleep 3
     playback_menu
   fi
@@ -1876,13 +1877,13 @@ playback_history() {
       elif [ "$mediaType" = 'episode' ]; then
         platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" |tr -d '"')
         device=$(jq .response.data.data["${item}"].player "${historyRawFile}" |tr -d '"')
-        showName=$(jq .response.data.data["${item}"].grandparent_title "${historyRawFile}" |tr -d '"')
+        #showName=$(jq .response.data.data["${item}"].grandparent_title "${historyRawFile}" |tr -d '"')
         parentTitle=$(jq .response.data.data["${item}"].parent_media_index "${historyRawFile}")
         seasonNum=$(printf "%02d" ${parentTitle})
         mediaIndex=$(jq .response.data.data["${item}"].media_index "${historyRawFile}")
         episodeNum=$(printf "%02d" ${mediaIndex})
-        title=$(jq .response.data.data["${item}"].title "${historyRawFile}" |tr -d '"')
-        playing=$(echo "${showName} - S${seasonNum}E${episodeNum} - ${title}")
+        title=$(jq .response.data.data["${item}"].full_title "${historyRawFile}" |tr -d '"')
+        playing=$(echo "${title} - S${seasonNum}E${episodeNum}")
         transcodeDecision=$(jq .response.data.data["${item}"].transcode_decision "${historyRawFile}" |tr -d '"')
         playbackType=$(echo "${transcodeDecision}" |awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
         startTime=$(jq .response.data.data["${item}"].started "${historyRawFile}" |tr -d '"')
@@ -1909,6 +1910,7 @@ playback_history() {
     cat "${historyDataFile}"
   elif [[ "${numberOfHistoryItems}" -le '0' ]]; then
     echo -e "${org}There is no playback history at this time.${endColor}"
+    echo ''
     sleep 3
     playback_menu
   fi
