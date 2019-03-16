@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
-# Script to setup/configure MediaButler.
+# Script to work with MediaButler.
+# Assists in configuration and allows you to perform most tasks.
 # Tronyx
+
+# Set parameters
 set -eo pipefail
 IFS=$'\n\t'
 
@@ -35,7 +38,7 @@ radarr4kAPIKeyStatus='invalid'
 radarr3dURLStatus='invalid'
 radarr3dAPIKeyStatus='invalid'
 
-# Define temp dir and files
+# Define temp directory and files
 tempDir='/tmp/mb_setup/'
 spacePattern="( |\')"
 plexCredsFile="${tempDir}plex_creds_check.txt"
@@ -84,7 +87,7 @@ readonly mgt='\e[35m'
 readonly bold='\e[1m'
 readonly endColor='\e[0m'
 
-# Script Information
+# Function to gather script information
 get_scriptname() {
   local source
   local dir
@@ -100,7 +103,7 @@ get_scriptname() {
 readonly scriptname="$(get_scriptname)"
 readonly scriptpath="$(cd -P "$(dirname "${scriptname}")" > /dev/null && pwd)"
 
-# Check whether or not user is root or used sudo
+# Check whether or not user is root or used sudo and, if not, do it for them
 root_check() {
   if [[ ${EUID} -ne 0 ]]; then
     echo -e "${red}You didn't run the script as root!${endColor}"
@@ -111,7 +114,7 @@ root_check() {
   fi
 }
 
-# Function to check Bash is >=4 and, if not, exit w/ message
+# Function to check if the installed version of Bash is >=4 and, if not, exit w/ message
 check_bash() {
   bashMajorVersion=$(bash --version |head -1 |awk '{print $4}' |cut -c1)
   if [ "${bashMajorVersion}" -lt '4' ]; then
@@ -122,7 +125,7 @@ check_bash() {
   fi
 }
 
-# Function to check Sed is >= and, if not,  exit w/ message
+# Function to check if the installed version of Sed is >= and, if not,  exit w/ message
 check_sed() {
   if [ "${packageManager}" = 'mac' ]; then
     sedMajorVersion=$(gsed --version |head -1 |awk '{print $4}' |cut -c1)
@@ -215,13 +218,13 @@ checks() {
   check_sed
 }
 
-# Create directory to neatly store temp files
+# Function to create temp directory to neatly store temp files
 create_dir() {
   mkdir -p "${tempDir}"
   chmod 777 "${tempDir}"
 }
 
-# Cleanup temp files
+# Function to cleanup temp files
 cleanup() {
   rm -rf "${tempDir}"*.txt || true
   rm -rf "${scriptname}".bak || true
@@ -229,8 +232,8 @@ cleanup() {
 }
 trap 'cleanup' 0 1 3 6 14 15
 
-# Exit the script if the user hits CTRL+C
-function control_c() {
+# Function to exit the script if the user hits CTRL+C
+control_c() {
   cleanup
   if [ "${endpoint}" = 'plex' ]; then
     reset_plex
@@ -251,7 +254,7 @@ function control_c() {
 }
 trap 'control_c' 2
 
-# Grab status variable line numbers
+# Function to grab status variable line numbers
 get_line_numbers() {
   plexCredsStatusLineNum=$(head -50 "${scriptname}" |grep -En -A1 'Set initial Plex credentials status' |tail -1 | awk -F- '{print $1}')
   plexServerStatusLineNum=$(head -50 "${scriptname}" |grep -En -A1 'Set initial Plex server selection status' |tail -1 | awk -F- '{print $1}')
@@ -323,7 +326,7 @@ reset_tautulli() {
   sed -i.bak "${tautulliAPIKeyStatusLineNum} s/tautulliAPIKeyStatus='[^']*'/tautulliAPIKeyStatus='invalid'/" "${scriptname}"
   tautulliAPIKeyStatus='invalid'
 }
-# All apps and Plex
+# Function to reset all apps and Plex
 reset(){
   echo -e "${red}**WARNING!!!** This will reset ALL setup progress!${endColor}"
   echo -e "${ylw}Do you wish to continue?${endColor}"
@@ -423,7 +426,7 @@ check_plex_creds() {
   done
 }
 
-# Function to get user's Plex token
+# Function to get user's Plex token if the chose to use credentials
 get_plex_token() {
   endpoint='plex'
   if [ "${plexCredsOption}" == '1' ]; then
@@ -442,7 +445,7 @@ get_plex_token() {
   fi
 }
 
-# Function to create list of Plex servers
+# Function to create list of Plex servers the user owns
 create_plex_servers_list() {
   endpoint='plex'
   jq '.servers[] | select(.owner==true)' "${plexCredsFile}" |jq .name |tr -d '"' > "${plexServersFile}"
@@ -558,7 +561,7 @@ prompt_for_plex_server() {
   fi
 }
 
-# Function to determine whether user has admin permissions
+# Function to determine whether user has admin permissions to the selected Plex Server
 check_admin() {
   curl -s --location --request GET "${userMBURL}user/@me/" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -572,7 +575,7 @@ check_admin() {
   fi
 }
 
-# Function to create environment variables file
+# Function to create environment variables file for persistence
 create_env_file() {
   echo "plexToken	${plexToken}" > "${envFile}"
   echo "serverName	${selectedPlexServerName}" >> "${envFile}"
@@ -631,9 +634,9 @@ convert_url() {
 
 # Function to display the main menu
 main_menu() {
-  echo '*****************************************'
-  echo '*              ~Main Menu~              *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*              ~Main Menu~              *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'Please select from the following options:'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
@@ -678,9 +681,9 @@ main_menu() {
 
 # Function to display the requests menu
 requests_menu() {
-  echo '*****************************************'
-  echo '*            ~Requests Menu~            *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*            ~Requests Menu~            *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'Please select from the following options:'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
@@ -692,6 +695,7 @@ requests_menu() {
   echo ''
   if ! [[ "${requestsMenuSelection}" =~ ^(1|2|3)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
+    echo ''
     requests_menu
   elif [ "${requestsMenuSelection}" = '1' ]; then
     submit_request_menu
@@ -699,6 +703,7 @@ requests_menu() {
     if [ "${isAdmin}" != 'true' ]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
+      echo ''
       main_menu
     elif [ "${isAdmin}" = 'true' ]; then
       manage_requests
@@ -710,9 +715,9 @@ requests_menu() {
 
 # Function to display the request submission menu
 submit_request_menu() {
-  echo '*****************************************'
-  echo '*          ~Submit A Request~           *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*          ~Submit A Request~           *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'What would you like to request?'
   echo ''
   echo -e "${bold}1)${endColor} TV Show"
@@ -734,17 +739,19 @@ submit_request_menu() {
   elif [ "${submitRequestMenuSelection}" = '3' ]; then
     requestType='music'
     echo -e "${red}Not setup yet!${endColor}"
+    echo ''
     submit_request_menu
   elif [ "${submitRequestMenuSelection}" = '4' ]; then
+    echo ''
     main_menu
   fi
 }
 
 # Function to display the issues menu
 issues_menu() {
-  echo '*****************************************'
-  echo '*             ~Issues Menu~             *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*             ~Issues Menu~             *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'Please select from the following options"'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
@@ -756,19 +763,23 @@ issues_menu() {
   echo ''
   if ! [[ "${issuesMenuSelection}" =~ ^(1|2|3)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
+    echo ''
     issues_menu
   elif [ "${issuesMenuSelection}" = '1' ]; then
     #add_issue_menu
     echo -e "${red}Not setup yet!${endColor}"
+    echo ''
     exit 0
   elif [ "${issuesMenuSelection}" = '2' ]; then
     if [ "${isAdmin}" != 'true' ]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
+      echo ''
       main_menu
     elif [ "${isAdmin}" = 'true' ]; then
       #manage_issues_menu
       echo -e "${red}Not setup yet!${endColor}"
+      echo ''
       exit 0
     fi
   elif [ "${issuesMenuSelection}" = '3' ]; then
@@ -778,9 +789,9 @@ issues_menu() {
 
 # Function to display the playback menu
 playback_menu() {
-  echo '*****************************************'
-  echo '*            ~Playback Menu~            *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*            ~Playback Menu~            *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'Please select from the following options"'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
@@ -792,6 +803,7 @@ playback_menu() {
   echo ''
   if ! [[ "${playbackMenuSelection}" =~ ^(1|2|3)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
+    echo ''
     playback_menu
   elif [ "${playbackMenuSelection}" = '1' ]; then
     playback_history
@@ -799,6 +811,7 @@ playback_menu() {
     if [ "${isAdmin}" != 'true' ]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
+      echo ''
       main_menu
     elif [ "${isAdmin}" = 'true' ]; then
       now_playing
@@ -815,14 +828,18 @@ create_plex_libraries_list() {
 
 # Function to display the library menu
 library_menu() {
-  foo
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*         ~Plex Libraries Menu~         *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
+  echo 'Please select from the following options"'
+  echo ''
 }
 
 # Function to display the search menu
 search_menu() {
-  echo '*****************************************'
-  echo '*             ~Search Menu~             *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*             ~Search Menu~             *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'Please select from the following options"'
   echo ''
   echo -e "${bold}1)${endColor} TV Show"
@@ -834,18 +851,22 @@ search_menu() {
   echo ''
   if ! [[ "${searchMenuSelection}" =~ ^(1|2|3|4)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
+    echo ''
     search_menu
   elif [ "${searchMenuSelection}" = '1' ]; then
     #search_show
     echo -e "${red}Not setup yet!${endColor}"
+    echo ''
     exit 0
   elif [ "${searchMenuSelection}" = '2' ]; then
     #search_movie
     echo -e "${red}Not setup yet!${endColor}"
+    echo ''
     exit 0
   elif [ "${searchMenuSelection}" = '3' ]; then
     #search_music
     echo -e "${red}Not setup yet!${endColor}"
+    echo ''
     exit 0
   elif [ "${searchMenuSelection}" = '4' ]; then
     main_menu
@@ -854,9 +875,9 @@ search_menu() {
 
 # Function to display the endpoint config menu
 endpoint_menu(){
-  echo '*****************************************'
-  echo '*     ~Endpoint Configuration Menu~     *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*     ~Endpoint Configuration Menu~     *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'Please choose which application you would'
   echo '   like to configure for MediaButler:    '
   echo ''
@@ -899,9 +920,9 @@ endpoint_menu(){
 
 # Function to display the Sonarr sub-menu
 sonarr_menu() {
-  echo '*****************************************'
-  echo '*          ~Sonarr Setup Menu~          *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*          ~Sonarr Setup Menu~          *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'Please choose which version of Sonarr you'
   echo 'would like to configure for MediaButler: '
   echo ''
@@ -931,9 +952,9 @@ sonarr_menu() {
 
 # Function to display the Radarr sub-menu
 radarr_menu() {
-  echo '*****************************************'
-  echo '*          ~Radarr Setup Menu~          *'
-  echo '*****************************************'
+  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}*          ~Radarr Setup Menu~          *${endColor}"
+  echo -e "${bold}*****************************************${endColor}"
   echo 'Please choose which version of Radarr you'
   echo 'would like to configure for MediaButler: '
   echo ''
@@ -2010,11 +2031,17 @@ submit_requests() {
   read -r request
   echo ''
   convert_request_title
-  curl -s --location --request GET "${userMBURL}${requestType}?query=${convertedRequestTitle}" \
+  queryRequestStatusCode=$(curl -s -o "${requestResultsRawFile}" -w "%{http_code}" --location --request GET "${userMBURL}${requestType}?query=${convertedRequestTitle}" \
   -H "${mbClientID}" \
-  -H "Authorization: Bearer ${plexServerMBToken}" |jq . > "${requestResultsRawFile}"
-  create_request_results_list
-  prompt_for_request_selection
+  -H "Authorization: Bearer ${plexServerMBToken}")
+  if [ "${queryRequestStatusCode}" = '200' ]; then
+    create_request_results_list
+    prompt_for_request_selection
+  elif [ "${queryRequestStatusCode}" = '500' ]; then
+    echo -e "${red}Your search yielded no results!${endColor}"
+    echo ''
+    submit_request_menu
+  fi
   mediaID=$(jq .results["${requestsResultsArrayElement}"].id "${requestResultsRawFile}")
   echo 'Submitting your request...'
   echo ''
@@ -2092,13 +2119,13 @@ manage_requests() {
   prompt_for_request_to_manage
   requestStatusCode=$(jq .["${manageRequestArrayElement}"].status "${currentRequestsRawFile}")
   if [ "${requestStatusCode}" = '0' ]; then
-    requestStatus="Pending"
+    requestStatus="${red}Pending${endColor}"
   elif [ "${requestStatusCode}" = '1' ]; then
-    requestStatus="Downloading"
+    requestStatus="${lorg}Downloading${endColor}"
   elif [ "${requestStatusCode}" = '2' ]; then
-    requestStatus="Partially Filled"
+    requestStatus="${ylw}Partially Filled${endColor}"
   elif [ "${requestStatusCode}" = '3' ]; then
-    requestStatus="Filled"
+    requestStatus="${grn}Filled${endColor}"
   fi
   echo -e "${bold}Request information:${endColor}"
   echo ''
