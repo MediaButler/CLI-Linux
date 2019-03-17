@@ -608,13 +608,15 @@ create_env_file() {
 
 # Function to exit the menu
 exit_menu() {
-  echo -e "${red}This will exit the program and any unfinished config setup will be lost.${endColor}"
+  echo -e "${red}This will exit the program and any unfinished config setup will be lost!${endColor}"
   echo -e "${ylw}Are you sure you wish to exit?${endColor}"
   echo ''
   echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
   read -r exitPrompt
   if ! [[ "${exitPrompt}" =~ ^(yes|y|Yes|Y|no|n|No|N)$ ]]; then
     echo -e "${red}Please specify yes, y, no, or n.${endColor}"
+    echo ''
+    exit_menu
   elif [[ "${exitPrompt}" =~ ^(yes|y|Yes|Y)$ ]]; then
     exit 0
   elif [[ "${exitPrompt}" =~ ^(no|n|No|N)$ ]]; then
@@ -840,7 +842,7 @@ search_menu() {
   echo -e "${bold}*****************************************${endColor}"
   echo -e "${bold}*             ~Search Menu~             *${endColor}"
   echo -e "${bold}*****************************************${endColor}"
-  echo 'Please select from the following options"'
+  echo 'Please select from the following options:'
   echo ''
   echo -e "${bold}1)${endColor} TV Show"
   echo -e "${bold}2)${endColor} Movie"
@@ -1129,7 +1131,7 @@ setup_sonarr() {
     read -r providedURL
     echo ''
     echo 'Checking that the provided Sonarr URL is valid...'
-    echo ''
+    #echo ''
     convert_url
     set +e
     sonarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
@@ -1159,7 +1161,7 @@ setup_sonarr() {
     read -rs sonarrAPIKey
     echo ''
     echo 'Testing that the provided Sonarr API Key is valid...'
-    echo ''
+    #echo ''
     sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" |jq .[] |tr -d '"')
     while [ "${sonarrAPIKeyStatus}" = 'invalid' ]; do
       if [ "${sonarrAPITestResponse}" = 'Unauthorized' ]; then
@@ -1246,7 +1248,7 @@ setup_sonarr() {
     read -r providedURL
     echo ''
     echo 'Checking that the provided Sonarr 4K URL is valid...'
-    echo ''
+    #echo ''
     convert_url
     set +e
     sonarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
@@ -1276,7 +1278,7 @@ setup_sonarr() {
     read -rs sonarr4kAPIKey
     echo ''
     echo 'Testing that the provided Sonarr 4K API Key is valid...'
-    echo ''
+    #echo ''
     sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" |jq .[] |tr -d '"')
     while [ "${sonarr4kAPIKeyStatus}" = 'invalid' ]; do
       if [ "${sonarr4kAPITestResponse}" = 'Unauthorized' ]; then
@@ -1368,7 +1370,7 @@ setup_radarr() {
     read -r providedURL
     echo ''
     echo 'Checking that the provided Radarr URL is valid...'
-    echo ''
+    #echo ''
     convert_url
     set +e
     radarrURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
@@ -1398,7 +1400,7 @@ setup_radarr() {
     read -rs radarrAPIKey
     echo ''
     echo 'Testing that the provided Radarr API Key is valid...'
-    echo ''
+    #echo ''
     radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" |jq .[] |tr -d '"')
     while [ "${radarrAPIKeyStatus}" = 'invalid' ]; do
       if [ "${radarrAPITestResponse}" = 'Unauthorized' ]; then
@@ -1485,7 +1487,7 @@ setup_radarr() {
     read -r providedURL
     echo ''
     echo 'Checking that the provided Radarr 4K URL is valid...'
-    echo ''
+    #echo ''
     convert_url
     set +e
     radarr4kURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
@@ -1515,7 +1517,7 @@ setup_radarr() {
     read -rs radarr4kAPIKey
     echo ''
     echo 'Testing that the provided Radarr 4K API Key is valid...'
-    echo ''
+    #echo ''
     radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" |jq .[] |tr -d '"')
     while [ "${radarr4kAPIKeyStatus}" = 'invalid' ]; do
       if [ "${radarr4kAPITestResponse}" = 'Unauthorized' ]; then
@@ -1602,7 +1604,7 @@ setup_radarr() {
     read -r providedURL
     echo ''
     echo 'Checking that the provided Radarr 3D URL is valid...'
-    echo ''
+    #echo ''
     convert_url
     set +e
     radarr3dURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}")
@@ -1723,7 +1725,7 @@ setup_tautulli() {
   read -r providedURL
   echo ''
   echo 'Checking that the provided Tautulli URL is valid...'
-  echo ''
+  #echo ''
   convert_url
   set +e
   tautulliURLCheckResponse=$(curl --head --write-out "%{http_code}" -sI --output /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
@@ -1753,7 +1755,7 @@ setup_tautulli() {
   read -rs tautulliAPIKey
   echo ''
   echo 'Testing that the provided Tautulli API Key is valid...'
-  echo ''
+  #echo ''
   tautulliAPITestResponse=$(curl -s "${convertedURL}api/v2?apikey=${tautulliAPIKey}&cmd=arnold" |jq .response.message |tr -d '"')
   while [ "${tautulliAPIKeyStatus}" = 'invalid' ]; do
     if [ "${tautulliAPITestResponse}" = 'null' ]; then
@@ -1894,10 +1896,11 @@ now_playing() {
         cat "${nowPlayingDataFile}"
       fi
     done
+    echo ''
+    playback_menu
   elif [[ "${numberOfCurrentStreams}" -le '0' ]]; then
     echo -e "${org}There are no active streams at this time.${endColor}"
     echo ''
-    sleep 3
     playback_menu
   fi
 }
@@ -1965,10 +1968,11 @@ playback_history() {
     done
     echo -e "${lblu}============================================================${endColor}" >> "${historyDataFile}"
     cat "${historyDataFile}"
+    echo ''
+    playback_menu
   elif [[ "${numberOfHistoryItems}" -le '0' ]]; then
     echo -e "${org}There is no playback history at this time.${endColor}"
     echo ''
-    sleep 3
     playback_menu
   fi
 }
