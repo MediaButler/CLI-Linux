@@ -2033,8 +2033,8 @@ submit_requests() {
     submit_request_menu
   fi
   mediaID=$(jq .results["${requestsResultsArrayElement}"].id "${requestResultsRawFile}")
+  mediaTitle=$(jq .results["${requestsResultsArrayElement}"].seriesName "${requestResultsRawFile}" |tr -d '"')
   echo 'Submitting your request...'
-  echo ''
   submitRequestStatusCode=$(curl -s -o "${submitRequestResultFile}" -w "%{http_code}" --location --request POST "${userMBURL}${endpoint}" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -H "${mbClientID}" \
@@ -2043,17 +2043,17 @@ submit_requests() {
   --data-urlencode "title=${selectedRequestsResult}" \
   --data-urlencode "${mediaDatabase}=${mediaID}")
   if [ "${submitRequestStatusCode}" = '200' ]; then
-    echo -e "${grn}Request submitted successfully!${endColor}"
+    echo -e "${grn}Success! ${mediaTitle} has been requested.${endColor}"
     echo ''
     requests_menu
   elif [ "${submitRequestStatusCode}" = '500' ]; then
     submitRequestResponse=$(jq .message "${submitRequestResultFile}" |tr -d '"')
     if [ "${submitRequestResponse}" = 'Item Exists' ]; then
-      echo -e "${red}Item already exists!${endColor}"
+      echo -e "${red}${mediaTitle} already exists on Plex!${endColor}"
       echo ''
       requests_menu
     elif [ "${submitRequestResponse}" = 'Request already exists' ]; then
-      echo -e "${red}Item has already been requested!${endColor}"
+      echo -e "${red}${mediaTitle} has already been requested!${endColor}"
       echo ''
       requests_menu
     fi
