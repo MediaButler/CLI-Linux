@@ -648,6 +648,7 @@ main_menu() {
   elif [ "${mainMenuSelection}" = '1' ]; then
     if [ "${isAdmin}" != 'true' ]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
+      sleep 3
       clear >&2
       main_menu
     elif [ "${isAdmin}" = 'true' ]; then
@@ -693,6 +694,7 @@ requests_menu() {
   elif [ "${requestsMenuSelection}" = '2' ]; then
     if [ "${isAdmin}" != 'true' ]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
+      sleep 3
       clear >&2
       main_menu
     elif [ "${isAdmin}" = 'true' ]; then
@@ -803,7 +805,6 @@ playback_menu() {
     if [ "${isAdmin}" != 'true' ]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
-      echo ''
       clear >&2
       main_menu
     elif [ "${isAdmin}" = 'true' ]; then
@@ -1179,9 +1180,9 @@ setup_sonarr() {
       if [ "${sonarrMBConfigPostResponse}" = 'success' ]; then
         echo -e "${grn}Done! Sonarr has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
-        sleep 3
         echo ''
         echo 'Returning you to the Endpoint Configuration Menu...'
+        sleep 3
         clear >&2
         endpoint_menu
       elif [ "${sonarrMBConfigPostResponse}" != 'success' ]; then
@@ -1297,9 +1298,9 @@ setup_sonarr() {
       if [ "${sonarr4kMBConfigPostResponse}" = 'success' ]; then
         echo -e "${grn}Done! Sonarr 4K has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
-        sleep 3
         echo ''
         echo 'Returning you to the Endpoint Configuration Menu...'
+        sleep 3
         clear >&2
         endpoint_menu
       elif [ "${sonarr4kMBConfigPostResponse}" != 'success' ]; then
@@ -1420,9 +1421,9 @@ setup_radarr() {
       if [ "${radarrMBConfigPostResponse}" = 'success' ]; then
         echo -e "${grn}Done! Radarr has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
-        sleep 3
         echo ''
         echo 'Returning you to the Endpoint Configuration Menu...'
+        sleep 3
         clear >&2
         endpoint_menu
       elif [ "${radarrMBConfigPostResponse}" != 'success' ]; then
@@ -1538,9 +1539,9 @@ setup_radarr() {
       if [ "${radarr4kMBConfigPostResponse}" = 'success' ]; then
         echo -e "${grn}Done! Radarr 4K has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
-        sleep 3
         echo ''
         echo 'Returning you to the Endpoint Configuration Menu...'
+        sleep 3
         clear >&2
         endpoint_menu
       elif [ "${radarr4kMBConfigPostResponse}" != 'success' ]; then
@@ -1657,9 +1658,9 @@ setup_radarr() {
       if [ "${radarr3dMBConfigPostResponse}" = 'success' ]; then
         echo -e "${grn}Done! Radarr 3D has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
-        sleep 3
         echo ''
         echo 'Returning you to the Endpoint Configuration Menu...'
+        sleep 3
         clear >&2
         endpoint_menu
       elif [ "${radarr3dMBConfigPostResponse}" != 'success' ]; then
@@ -1774,9 +1775,9 @@ setup_tautulli() {
     if [ "${tautulliMBConfigPostResponse}" = 'success' ]; then
       echo -e "${grn}Done! Tautulli has been successfully configured for${endColor}"
       echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
-      sleep 3
       echo ''
       echo 'Returning you to the Endpoint Configuration Menu...'
+      sleep 3
       clear >&2
       endpoint_menu
     elif [ "${tautulliMBConfigPostResponse}" != 'success' ]; then
