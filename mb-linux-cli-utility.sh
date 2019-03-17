@@ -1181,7 +1181,7 @@ setup_sonarr() {
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         sleep 3
         echo ''
-        echo 'Returning you to the Main Menu...'
+        echo 'Returning you to the Endpoint Configuration Menu...'
         clear >&2
         endpoint_menu
       elif [ "${sonarrMBConfigPostResponse}" != 'success' ]; then
@@ -1299,7 +1299,7 @@ setup_sonarr() {
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         sleep 3
         echo ''
-        echo 'Returning you to the Main Menu...'
+        echo 'Returning you to the Endpoint Configuration Menu...'
         clear >&2
         endpoint_menu
       elif [ "${sonarr4kMBConfigPostResponse}" != 'success' ]; then
@@ -1422,7 +1422,7 @@ setup_radarr() {
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         sleep 3
         echo ''
-        echo 'Returning you to the Main Menu...'
+        echo 'Returning you to the Endpoint Configuration Menu...'
         clear >&2
         endpoint_menu
       elif [ "${radarrMBConfigPostResponse}" != 'success' ]; then
@@ -1540,7 +1540,7 @@ setup_radarr() {
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         sleep 3
         echo ''
-        echo 'Returning you to the Main Menu...'
+        echo 'Returning you to the Endpoint Configuration Menu...'
         clear >&2
         endpoint_menu
       elif [ "${radarr4kMBConfigPostResponse}" != 'success' ]; then
