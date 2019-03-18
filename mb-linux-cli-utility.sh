@@ -483,7 +483,7 @@ prompt_for_plex_server() {
   done
   echo ''
   echo 'Gathering required information...'
-  plexServerArrayElement=$((${plexServerSelection}-1))
+  plexServerArrayElement=$((plexServerSelection-1))
   selectedPlexServerName=$(jq .servers["${plexServerArrayElement}"].name "${plexCredsFile}" |tr -d '"')
   plexServerMachineID=$(jq .servers["${plexServerArrayElement}"].machineId "${plexCredsFile}" |tr -d '"')
   userMBURL=$(curl -s --location --request POST "${mbDiscoverURL}" \
