@@ -24,7 +24,7 @@ A command line tool to enable usage of the [MediaButler Server](https://github.c
 
  ## Requirements
 
- We have done everything in our power to limit the dependencies this application has and for most Linux users should have it installed. However in case you do not you will require the following packages
+ We have done everything in our power to limit the number of dependencies that this application requires and, for most Linux users, they should already be installed. However, in case you do not, you will need the following packages in order to run the utility:
 
   - bash
   - curl
