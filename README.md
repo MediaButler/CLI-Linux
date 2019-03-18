@@ -1,6 +1,6 @@
 # MediaButler Linux CLI Utility
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e361db36df7245ac9059dbbedbe65ca4)](https://www.codacy.com/app/christronyxyocum/mb-setup-utility?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=christronyxyocum/mb-setup-utility&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bf0b65fe02504b60a2439070c45dc3f8)](https://www.codacy.com/app/christronyxyocum/CLI-Linux?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MediaButler/CLI-Linux&amp;utm_campaign=Badge_Grade)
 [![Chat on Discord](https://img.shields.io/discord/379374148436230144.svg)](https://discord.gg/nH9t5sm)
 [![made-with-bash](https://img.shields.io/badge/Made%20with-Bash-1f425f.svg)](https://www.gnu.org/software/bash/)
 [![](https://badge-size.herokuapp.com/MediaButler/CLI-Linux/master/mb-linux-cli-utility.sh)](https://github.com/MediaButler/CLI-Linux/blob/master/mb-linux-cli-utility.sh)
@@ -24,7 +24,7 @@ A command line tool to enable usage of the [MediaButler Server](https://github.c
 
  ## Requirements
 
- We have done everything in our power to limit the dependencies this application has and for most Linux users should have it installed. However in case you do not you will require the following packages
+ We have done everything in our power to limit the number of dependencies that this application requires and, for most Linux users, they should already be installed. However, in case you do not, you will need the following packages in order to run the utility:
 
   - bash
   - curl
