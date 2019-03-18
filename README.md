@@ -40,6 +40,13 @@ A command line tool to enable usage of the [MediaButler Server](https://github.c
      chmod +x mb-linux-cli-utility.sh
      ./mb-linux-cli-utility.sh
 
+## Docker
+
+You can also run the client inside a docker envrionment by running
+
+    docker run -it mediabutler/cli-linux
+
+
 ## Support
 
 Further help and support using this script can be found in [our Wiki](https://github.com/MediaButler/Wiki/wiki) or drop by our [Discord Server](https://discord.gg/nH9t5sm)
