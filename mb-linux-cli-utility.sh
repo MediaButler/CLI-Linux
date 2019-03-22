@@ -570,15 +570,23 @@ prompt_for_plex_server() {
 
 # Function to determine whether user has admin permissions to the selected Plex Server
 check_admin() {
-  curl -s --location --request GET "${userMBURL}user/@me/" \
+  adminCheckContentResponse=$(curl -s -o "${adminCheckFile}" --write-out "%{content_type}" --location --request GET "${userMBURL}user/@me/" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -H "${mbClientID}" \
-  -H "Authorization: Bearer ${plexServerMBToken}" |jq .permissions > "${adminCheckFile}"
-  adminCheckResponse=$(grep -i admin "${adminCheckFile}" |awk '{print $1}' |tr -d '"')
-  if [ "${adminCheckResponse}" = 'ADMIN' ]; then
-    isAdmin='true'
-  elif [ "${adminCheckResponse}" != 'ADMIN' ]; then
-    isAdmin='false'
+  -H "Authorization: Bearer ${plexServerMBToken}")
+  if [[ "${adminCheckContentResponse}" =~ 'json' ]]; then
+    adminCheckResponse=$(grep -i admin "${adminCheckFile}" |awk '{print $1}' |tr -d '"')
+    if [ "${adminCheckResponse}" = 'ADMIN' ]; then
+      isAdmin='true'
+    elif [ "${adminCheckResponse}" != 'ADMIN' ]; then
+      isAdmin='false'
+    fi
+  elif [[ "${adminCheckContentResponse}" != *'json'* ]]; then
+    echo -e "${red}There was an issue checking your permissions for the selected Plex Server!${endColor}"
+    echo -e "${ylw}Please make sure your MediaButler API is functioning properly and try again.${endColor}"
+    reset_plex
+    clear >&2
+    exit 0
   fi
 }
 
@@ -826,7 +834,7 @@ library_menu() {
   echo -e "${bold}*****************************************${endColor}"
   echo -e "${bold}*         ~Plex Libraries Menu~         *${endColor}"
   echo -e "${bold}*****************************************${endColor}"
-  echo 'Please select from the following options"'
+  echo 'Please select from the following options:'
   echo ''
 }
 
@@ -835,27 +843,28 @@ search_menu() {
   echo -e "${bold}*****************************************${endColor}"
   echo -e "${bold}*             ~Search Menu~             *${endColor}"
   echo -e "${bold}*****************************************${endColor}"
-  echo 'Please select the Plex library you would like to search:'
+  echo 'Please select the category you would like to search:'
   echo ''
-  echo -e "${bold}1)${endColor} TV Show"
-  echo -e "${bold}2)${endColor} Movie"
+  echo -e "${bold}1)${endColor} TV Shows"
+  echo -e "${bold}2)${endColor} Movies"
   echo -e "${bold}3)${endColor} Music"
-  echo -e "${bold}4)${endColor} Back to Main Menu"
+  echo -e "${bold}4)${endColor} Everything"
+  echo -e "${bold}5)${endColor} Back to Main Menu"
   echo ''
   read -rp 'Selection: ' searchMenuSelection
   echo ''
-  if ! [[ "${searchMenuSelection}" =~ ^(1|2|3|4)$ ]]; then
+  if ! [[ "${searchMenuSelection}" =~ ^(1|2|3|4|5)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
     echo ''
     search_menu
   elif [ "${searchMenuSelection}" = '1' ]; then
-    #search_show
+    #search_shows
     echo -e "${red}Not setup yet!${endColor}"
     echo ''
     clear >&2
     main_menu
   elif [ "${searchMenuSelection}" = '2' ]; then
-    #search_movie
+    #search_movies
     echo -e "${red}Not setup yet!${endColor}"
     echo ''
     clear >&2
@@ -867,6 +876,12 @@ search_menu() {
     clear >&2
     main_menu
   elif [ "${searchMenuSelection}" = '4' ]; then
+    #search_all
+    echo -e "${red}Not setup yet!${endColor}"
+    echo ''
+    clear >&2
+    main_menu
+  elif [ "${searchMenuSelection}" = '5' ]; then
     clear >&2
     main_menu
   fi
