@@ -2193,7 +2193,7 @@ manage_requests() {
 # Function to prompt user to enter search terms
 search_prompt() {
   endpoint='plex/search/?query='
-  echo 'Please enter your search terms:'
+  echo -e "${bold}Please enter your search terms:${endColor}"
   read -r searchString
   convert_search_string
 }
