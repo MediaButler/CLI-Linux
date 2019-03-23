@@ -595,15 +595,16 @@ prompt_for_plex_server() {
 
 # Function to determine whether user has admin permissions to the selected Plex Server
 check_admin() {
+  set +e
   adminCheckContentResponse=$(curl -s -o "${adminCheckFile}" --write-out "%{content_type}" --location --request GET "${userMBURL}user/@me/" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -H "${mbClientID}" \
   -H "Authorization: Bearer ${plexServerMBToken}")
   if [[ "${adminCheckContentResponse}" =~ 'json' ]]; then
     adminCheckResponse=$(grep -i admin "${adminCheckFile}" |awk '{print $1}' |tr -d '"')
-    if [ "${adminCheckResponse}" = 'ADMIN' ]; then
+    if [[ "${adminCheckResponse}" =~ 'ADMIN' ]]; then
       isAdmin='true'
-    elif [ "${adminCheckResponse}" != 'ADMIN' ]; then
+    elif [[ "${adminCheckResponse}" != *'ADMIN'* ]] || [[ "${adminCheckResponse}" == '' ]]; then
       isAdmin='false'
     fi
   elif [[ "${adminCheckContentResponse}" != *'json'* ]]; then
@@ -613,6 +614,7 @@ check_admin() {
     clear >&2
     exit 0
   fi
+  set -e
 }
 
 # Function to create environment variables file for persistence
