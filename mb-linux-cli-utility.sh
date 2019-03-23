@@ -2017,8 +2017,11 @@ prompt_for_request_selection() {
   echo 'Which one would you like to request?'
   read -p "Selection (1-${cancelOption}): " requestsResultsSelection
   echo ''
-  if [[ "${requestsResultsSelection}" -lt '1' ]] || [[ "${requestsResultsSelection}" -gt "${numberOfOptions}" ]]; then
+  if [[ "${requestsResultsSelection}" -lt '1' ]] || [[ "${requestsResultsSelection}" -gt "${cancelOption}" ]]; then
     echo -e "${red}You didn't not specify a valid option!${endColor}"
+    echo ''
+    submit_request_menu
+  elif [ "${requestsResultsSelection}" = "${cancelOption}" ]; then
     echo ''
     submit_request_menu
   else
