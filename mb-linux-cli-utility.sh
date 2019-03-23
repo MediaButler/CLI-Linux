@@ -42,6 +42,8 @@ radarr3dAPIKeyStatus='invalid'
 tempDir='/tmp/mb_setup/'
 spacePattern="( |\')"
 plexCredsFile="${tempDir}plex_creds_check.txt"
+plexServersOwnerFile="${tempDir}plex_server_owners.txt"
+plexServersFriendsFile="${tempDir}plex_server_friends.txt"
 envFile="${tempDir}envFile.txt"
 jsonEnvFile='data.json'
 plexTokenFile="${tempDir}plex_token.txt"
@@ -466,7 +468,13 @@ get_plex_token() {
 # Function to create list of Plex servers the user owns
 create_plex_servers_list() {
   endpoint='plex'
-  jq '.servers[] | select(.owner==true)' "${plexCredsFile}" |jq .name |tr -d '"' > "${plexServersFile}"
+  jq '.servers[] | select(.owner==true)' "${plexCredsFile}" |jq .name |tr -d '"' > "${plexServersOwnerFile}"
+  jq '.servers[] | select(.owner!=true)' "${plexCredsFile}" |jq .name |tr -d '"' > "${plexServersFriendsFile}"
+  true > "${plexServersFile}"
+  for server in $(cat "${plexServersOwnerFile}"); do
+    echo "${server} (Owner)" >> "${plexServersFile}"
+  done
+  cat "${plexServersFriendsFile}" >> "${plexServersFile}"
   plexServers=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'plexServers=($(cat "${plexServersFile}"))'
   for ((i = 0; i < ${#plexServers[@]}; ++i)); do
@@ -479,15 +487,20 @@ create_plex_servers_list() {
 prompt_for_plex_server() {
   endpoint='plex'
   numberOfOptions=$(echo "${#plexServers[@]}")
+  cancelOption=$((numberOfOptions+1))
   while [ "${plexServerStatus}" = 'invalid' ]; do
     echo 'Please choose which Plex Server you would like to setup MediaButler for:'
     echo ''
     cat "${numberedPlexServersFile}"
+    echo -e "${bold}${cancelOption})${endColor} Cancel"
     echo ''
     read -p "Server: " plexServerSelection
-    if [[ "${plexServerSelection}" -lt '1' ]] || [[ "${plexServerSelection}" -gt "${numberOfOptions}" ]]; then
+    if [[ "${plexServerSelection}" -lt '1' ]] || [[ "${plexServerSelection}" -gt "${cancelOption}" ]]; then
       echo -e "${red}You did not specify a valid option!${endColor}"
       reset_plex
+    elif [ "${plexServerSelection}" = "${cancelOption}" ]; then
+      echo ''
+      exit 0
     else
       sed -i.bak "${plexServerStatusLineNum} s/plexServerStatus='[^']*'/plexServerStatus='ok'/" "${scriptname}"
       plexServerStatus='ok'
