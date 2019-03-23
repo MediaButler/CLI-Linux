@@ -74,6 +74,18 @@ currentRequestsTitlesFile="${tempDir}current_requests_titles.txt"
 numberedCurrentRequestsFile="${tempDir}numbered_current_requests_titles.txt"
 approveRequestResponseFile="${tempDir}approve_request_response.txt"
 denyRequestResponseFile="${tempDir}deny_request_response.txt"
+showSearchResultsRawFile="${tempDir}show_search_results_raw.txt"
+showSearchResults="${tempDir}show_search_results.txt"
+episodeSearchResultsRawFile="${tempDir}episode_search_results_raw.txt"
+episodeSearchResults="${tempDir}episode_search_results.txt"
+movieSearchResultsRawFile="${tempDir}movie_search_results_raw.txt"
+movieSearchResults="${tempDir}movie_search_results.txt"
+artistSearchResultsRawFile="${tempDir}artist_search_results_raw.txt"
+artistSearchResults="${tempDir}artist_search_results.txt"
+albumSearchResultsRawFile="${tempDir}album_search_results_raw.txt"
+albumSearchResults="${tempDir}album_search_results.txt"
+songSearchResultsRawFile="${tempDir}song_search_results_raw.txt"
+songSearchResults="${tempDir}song_search_results.txt"
 
 # Define text colors
 readonly blu='\e[34m'
@@ -858,29 +870,21 @@ search_menu() {
     echo ''
     search_menu
   elif [ "${searchMenuSelection}" = '1' ]; then
-    #search_shows
-    echo -e "${red}Not setup yet!${endColor}"
-    echo ''
-    clear >&2
-    main_menu
+    search_prompt
+    search_tv
+    search_menu
   elif [ "${searchMenuSelection}" = '2' ]; then
-    #search_movies
-    echo -e "${red}Not setup yet!${endColor}"
-    echo ''
-    clear >&2
-    main_menu
+    search_prompt
+    search_movies
+    search_menu
   elif [ "${searchMenuSelection}" = '3' ]; then
-    #search_music
-    echo -e "${red}Not setup yet!${endColor}"
-    echo ''
-    clear >&2
-    main_menu
+    search_prompt
+    search_music
+    search_menu
   elif [ "${searchMenuSelection}" = '4' ]; then
-    #search_all
-    echo -e "${red}Not setup yet!${endColor}"
-    echo ''
-    clear >&2
-    main_menu
+    search_prompt
+    search_all
+    search_menu
   elif [ "${searchMenuSelection}" = '5' ]; then
     clear >&2
     main_menu
@@ -1993,9 +1997,9 @@ create_request_results_list() {
 }
 
 # Function to convert spaces in title to plus sign
-convert_request_title() {
-  if [[ "${request}" =~ ${spacePattern} ]]; then
-    convertedRequestTitle=$(echo "${request}" |sed 's/ /+/g')
+convert_search_string() {
+  if [[ "${searchString}" =~ ${spacePattern} ]]; then
+    convertedSearchString=$(echo "${searchString}" |sed 's/ /+/g')
   else
     :
   fi
@@ -2036,10 +2040,10 @@ submit_requests() {
     mediaDatabase='unknown'
     echo 'Please enter the name of the Artist you would like to request:'
   fi
-  read -r request
+  read -r searchString
   echo ''
-  convert_request_title
-  queryRequestStatusCode=$(curl -s -o "${requestResultsRawFile}" -w "%{http_code}" --location --request GET "${userMBURL}${requestType}?query=${convertedRequestTitle}" \
+  convert_search_string
+  queryRequestStatusCode=$(curl -s -o "${requestResultsRawFile}" -w "%{http_code}" --location --request GET "${userMBURL}${requestType}?query=${convertedSearchString}" \
   -H "${mbClientID}" \
   -H "Authorization: Bearer ${plexServerMBToken}")
   if [ "${queryRequestStatusCode}" = '200' ]; then
@@ -2184,6 +2188,186 @@ manage_requests() {
   elif [ "${manageRequestOption}" = '3' ]; then
     manage_requests
   fi
+}
+
+# Function to prompt user to enter search terms
+search_prompt() {
+  endpoint='plex/search/?query='
+  echo 'Please enter your search terms:'
+  read -r searchString
+  convert_search_string
+}
+
+# Function to search TV shows
+search_shows() {
+  numberOfSearchResults=$(curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Shows").size')
+  echo -e "${org}TV Shows:${endColor}" > "${showSearchResults}"
+  if [[ ${numberOfSearchResults} -gt '0' ]]; then
+    for result in $(seq 0 $((numberOfSearchResults-1))); do
+      curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Shows")'.Metadata["${result}"] > "${showSearchResultsRawFile}"
+      showName=$(jq .title "${showSearchResultsRawFile}" |tr -d '"')
+      showYear=$(jq .year "${showSearchResultsRawFile}")
+      echo "${showName} (${showYear})" >> "${showSearchResults}"
+    done
+    echo ''
+  elif [[ "${numberOfSearchResults}" -le '0' ]]; then
+    echo -e "${ylw}No results at this time.${endColor}" >> "${showSearchResults}"
+    echo ''
+  fi
+  cat "${showSearchResults}"
+  echo ''
+}
+
+# Function to search episodes
+search_episodes() {
+  numberOfSearchResults=$(curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Episodes").size')
+  echo -e "${org}TV Show episodes:${endColor}" > "${episodeSearchResults}"
+  if [[ ${numberOfSearchResults} -gt '0' ]]; then
+    for result in $(seq 0 $((numberOfSearchResults-1))); do
+      curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Episodes")'.Metadata["${result}"] > "${episodeSearchResultsRawFile}"
+      showName=$(jq .grandparentTitle "${episodeSearchResultsRawFile}" |tr -d '"')
+      showYear=$(jq .year "${episodeSearchResultsRawFile}")
+      episodeTitle=$(jq .title "${episodeSearchResultsRawFile}")
+      parentIndex=$(jq .parentIndex "${episodeSearchResultsRawFile}")
+      seasonNum=$(printf "%02d" ${parentIndex})
+      mediaIndex=$(jq .index "${episodeSearchResultsRawFile}")
+      episodeNum=$(printf "%02d" ${mediaIndex})
+      echo "${showName} (${showYear}) - S${seasonNum}E${episodeNum} - ${episodeTitle}" >> "${episodeSearchResults}"
+    done
+    echo ''
+  elif [[ "${numberOfSearchResults}" -le '0' ]]; then
+    echo -e "${ylw}No results at this time.${endColor}" >> "${episodeSearchResults}"
+    echo ''
+  fi
+  cat "${episodeSearchResults}"
+  echo ''
+}
+
+# Function to run both the shows and episodes search functions
+search_tv() {
+  search_shows
+  search_episodes
+}
+
+# Function to search Movies
+search_movies() {
+  numberOfSearchResults=$(curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Movies").size')
+  echo -e "${org}Movies:${endColor}" > "${movieSearchResults}"
+  if [[ ${numberOfSearchResults} -gt '0' ]]; then
+    for result in $(seq 0 $((numberOfSearchResults-1))); do
+      curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Movies")'.Metadata["${result}"] > "${movieSearchResultsRawFile}"
+      movieName=$(jq .title "${movieSearchResultsRawFile}" |tr -d '"')
+      movieYear=$(jq .year "${movieSearchResultsRawFile}")
+      echo "${movieName} (${movieYear})" >> "${movieSearchResults}"
+    done
+    echo ''
+  elif [[ "${numberOfSearchResults}" -le '0' ]]; then
+    echo -e "${ylw}No results at this time.${endColor}" >> "${movieSearchResults}"
+    echo ''
+  fi
+  cat "${movieSearchResults}"
+  echo ''
+}
+
+# Function to search music artists
+search_artists() {
+  numberOfSearchResults=$(curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Artists").size')
+  echo -e "${org}Artists:${endColor}" > "${artistSearchResults}"
+  if [[ ${numberOfSearchResults} -gt '0' ]]; then
+    for result in $(seq 0 $((numberOfSearchResults-1))); do
+      curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Artists")'.Metadata["${result}"] > "${artistSearchResultsRawFile}"
+      artistName=$(jq .title "${artistSearchResultsRawFile}" |tr -d '"')
+      echo "${artistName}" >> "${artistSearchResults}"
+    done
+    echo ''
+  elif [[ "${numberOfSearchResults}" -le '0' ]]; then
+    echo -e "${ylw}No results at this time.${endColor}" >> "${artistSearchResults}"
+    echo ''
+  fi
+  cat "${artistSearchResults}"
+  echo ''
+}
+
+# Function to search albums
+search_albums() {
+  numberOfSearchResults=$(curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Albums").size')
+  echo -e "${org}Albums:${endColor}" > "${albumSearchResults}"
+  if [[ ${numberOfSearchResults} -gt '0' ]]; then
+    for result in $(seq 0 $((numberOfSearchResults-1))); do
+      curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Albums")'.Metadata["${result}"] > "${albumSearchResultsRawFile}"
+      artistName=$(jq .parentTitle "${albumSearchResultsRawFile}" |tr -d '"')
+      albumName=$(jq .title "${albumSearchResultsRawFile}" |tr -d '"')
+      echo "${artistName} - ${albumName}" >> "${albumSearchResults}"
+    done
+    echo ''
+  elif [[ "${numberOfSearchResults}" -le '0' ]]; then
+    echo -e "${ylw}No results at this time.${endColor}" >> "${albumSearchResults}"
+    echo ''
+  fi
+  cat "${albumSearchResults}"
+  echo ''
+}
+
+#  Function to search songs
+search_songs() {
+  numberOfSearchResults=$(curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+  -H "${mbClientID}" \
+  -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Tracks").size')
+  echo -e "${org}Songs:${endColor}" > "${songSearchResults}"
+  if [[ ${numberOfSearchResults} -gt '0' ]]; then
+    for result in $(seq 0 $((numberOfSearchResults-1))); do
+      curl -s --location --request GET "${userMBURL}${endpoint}${convertedSearchString}" \
+      -H "${mbClientID}" \
+      -H "Authorization: Bearer ${plexServerMBToken}" |jq '.Hub[] | select(.title=="Tracks")'.Metadata["${result}"] > "${songSearchResultsRawFile}"
+      artistName=$(jq .grandparentTitle "${songSearchResultsRawFile}" |tr -d '"')
+      albumName=$(jq .parentTitle "${songSearchResultsRawFile}" |tr -d '"')
+      songName=$(jq .title "${songSearchResultsRawFile}" |tr -d '"')
+      echo "${artistName} - ${albumName} - ${songName}" >> "${songSearchResults}"
+    done
+    echo ''
+  elif [[ "${numberOfSearchResults}" -le '0' ]]; then
+    echo -e "${ylw}No results at this time.${endColor}" >> "${songSearchResults}"
+    echo ''
+  fi
+  cat "${songSearchResults}"
+  echo ''
+}
+
+# Function to search music
+search_music() {
+  search_artists
+  search_albums
+  search_songs
+}
+
+# Function to search everything
+search_all() {
+  search_shows
+  search_episodes
+  search_movies
+  search_artists
+  search_albums
+  search_songs
 }
 
 # Main function to run all functions
