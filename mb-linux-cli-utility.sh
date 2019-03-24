@@ -1044,7 +1044,7 @@ prompt_for_arr_profile() {
   cat "${numberedArrProfilesFile}"
   echo -e "${bold}${cancelOption})${endColor} Cancel"
   echo ''
-  read -p "Profile (1-${numberOfOptions}): " arrProfilesSelection
+  read -p "Profile (1-${cancelOption}): " arrProfilesSelection
   echo ''
   if [[ "${arrProfilesSelection}" -lt '1' ]] || [[ "${arrProfilesSelection}" -gt "${cancelOption}" ]]; then
     echo -e "${red}You didn't not specify a valid option!${endColor}"
@@ -1109,7 +1109,7 @@ prompt_for_arr_root_dir() {
   cat "${numberedArrRootDirsFile}"
   echo -e "${bold}${cancelOption})${endColor} Cancel"
   echo ''
-  read -p "Root Dir (1-${numberOfOptions}): " arrRootDirsSelection
+  read -p "Root Dir (1-${cancelOption}): " arrRootDirsSelection
   echo ''
   if [[ "${arrRootDirsSelection}" -lt '1' ]] || [[ "${arrRootDirsSelection}" -gt "${cancelOption}" ]]; then
     echo -e "${red}You didn't not specify a valid option!${endColor}"
