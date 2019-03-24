@@ -396,7 +396,7 @@ get_plex_creds() {
     sleep 3
     reset_plex
     clear >&2
-    exit 1
+    exit 0
   fi
 }
 
@@ -597,13 +597,14 @@ prompt_for_plex_server() {
 
 # Function to determine whether user has admin permissions to the selected Plex Server
 check_admin() {
-  set +e
   adminCheckContentResponse=$(curl -s -o "${adminCheckFile}" -w "%{content_type}" -L -X GET "${userMBURL}user/@me/" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -H "${mbClientID}" \
   -H "Authorization: Bearer ${plexServerMBToken}")
   if [[ "${adminCheckContentResponse}" =~ 'json' ]]; then
+    set +e
     adminCheckResponse=$(grep -i admin "${adminCheckFile}" |awk '{print $1}' |tr -d '"')
+    set -e
     if [[ "${adminCheckResponse}" =~ 'ADMIN' ]]; then
       isAdmin='true'
     elif [[ "${adminCheckResponse}" != *'ADMIN'* ]] || [[ "${adminCheckResponse}" == '' ]]; then
@@ -617,7 +618,6 @@ check_admin() {
     clear >&2
     exit 0
   fi
-  set -e
 }
 
 # Function to create environment variables file for persistence
@@ -1038,14 +1038,34 @@ create_arr_profiles_list() {
 # Function to prompt user for default Arr profile
 prompt_for_arr_profile() {
   numberOfOptions=$(echo "${#arrProfiles[@]}")
+  cancelOption=$((numberOfOptions+1))
   echo 'Please choose which profile you would like to set as the default for MediaButler:'
   echo ''
   cat "${numberedArrProfilesFile}"
+  echo -e "${bold}${cancelOption})${endColor} Cancel"
   echo ''
-  read -p "Profile (1-${numberOfOptions}): " arrProfilesSelection
+  read -p "Profile (1-${cancelOption}): " arrProfilesSelection
   echo ''
-  if [[ "${arrProfilesSelection}" -lt '1' ]] || [[ "${arrProfilesSelection}" -gt "${numberOfOptions}" ]]; then
+  if [[ "${arrProfilesSelection}" -lt '1' ]] || [[ "${arrProfilesSelection}" -gt "${cancelOption}" ]]; then
     echo -e "${red}You didn't not specify a valid option!${endColor}"
+    echo ''
+    if [ "${endpoint}" = 'sonarr' ]; then
+      reset_sonarr
+      sonarr_menu
+    elif [ "${endpoint}" = 'sonarr4k' ]; then
+      reset_sonarr4k
+      sonarr_menu
+    elif [ "${endpoint}" = 'radarr' ]; then
+      reset_radarr
+      radarr_menu
+    elif [ "${endpoint}" = 'radarr4k' ]; then
+      reset_radarr4k
+      radarr_menu
+    elif [ "${endpoint}" = 'radarr3d' ]; then
+      reset_radarr3d
+      radarr_menu
+    fi
+  elif [ "${arrProfilesSelection}" = "${cancelOption}" ]; then
     echo ''
     if [ "${endpoint}" = 'sonarr' ]; then
       reset_sonarr
@@ -1083,14 +1103,34 @@ create_arr_root_dirs_list() {
 # Function to prompt user for default Arr root directory
 prompt_for_arr_root_dir() {
   numberOfOptions=$(echo "${#arrRootDirs[@]}")
+  cancelOption=$((numberOfOptions+1))
   echo 'Please choose which root directory you would like to set as the default for MediaButler:'
   echo ''
   cat "${numberedArrRootDirsFile}"
+  echo -e "${bold}${cancelOption})${endColor} Cancel"
   echo ''
-  read -p "Root Dir (1-${numberOfOptions}): " arrRootDirsSelection
+  read -p "Root Dir (1-${cancelOption}): " arrRootDirsSelection
   echo ''
-  if [[ "${arrRootDirsSelection}" -lt '1' ]] || [[ "${arrRootDirsSelection}" -gt "${numberOfOptions}" ]]; then
+  if [[ "${arrRootDirsSelection}" -lt '1' ]] || [[ "${arrRootDirsSelection}" -gt "${cancelOption}" ]]; then
     echo -e "${red}You didn't not specify a valid option!${endColor}"
+    echo ''
+    if [ "${endpoint}" = 'sonarr' ]; then
+      reset_sonarr
+      sonarr_menu
+    elif [ "${endpoint}" = 'sonarr4k' ]; then
+      reset_sonarr4k
+      sonarr_menu
+    elif [ "${endpoint}" = 'radarr' ]; then
+      reset_radarr
+      radarr_menu
+    elif [ "${endpoint}" = 'radarr4k' ]; then
+      reset_radarr4k
+      radarr_menu
+    elif [ "${endpoint}" = 'radarr3d' ]; then
+      reset_radarr3d
+      radarr_menu
+    fi
+  elif [ "${arrRootDirsSelection}" = "${cancelOption}" ]; then
     echo ''
     if [ "${endpoint}" = 'sonarr' ]; then
       reset_sonarr
