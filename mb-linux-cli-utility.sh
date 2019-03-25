@@ -512,6 +512,7 @@ prompt_for_plex_server() {
       echo -e "${red}You did not specify a valid option!${endColor}"
       reset_plex
     elif [ "${plexServerSelection}" = "${cancelOption}" ]; then
+      reset_plex
       echo ''
       exit 0
     else
