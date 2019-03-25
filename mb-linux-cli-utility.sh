@@ -406,7 +406,7 @@ get_plex_creds() {
     echo 'Please enter your Plex token:'
     read -rs plexToken
     echo ''
-  elif [ "${plexCredsOption}" == '2' ]; then
+  elif [ "${plexCredsOption}" == '3' ]; then
     exit 0
     clear >&2
   fi
@@ -675,9 +675,9 @@ convert_url() {
 
 # Function to display the main menu
 main_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*              ~Main Menu~              *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|              ~Main Menu~              |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please select from the following options:'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
@@ -723,9 +723,9 @@ main_menu() {
 
 # Function to display the requests menu
 requests_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*          ~Plex Requests Menu~         *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|          ~Plex Requests Menu~         |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please select from the following options:'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
@@ -758,9 +758,9 @@ requests_menu() {
 
 # Function to display the request submission menu
 submit_request_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*          ~Submit A Request~           *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|          ~Submit A Request~           |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'What would you like to request?'
   echo ''
   echo -e "${bold} 1)${endColor} TV Show"
@@ -792,9 +792,9 @@ submit_request_menu() {
 
 # Function to display the issues menu
 issues_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*        ~Plex Media Issues Menu~       *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|        ~Plex Media Issues Menu~       |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please select from the following options"'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
@@ -833,9 +833,9 @@ issues_menu() {
 
 # Function to display the playback menu
 playback_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*         ~Plex Playback Menu~          *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|         ~Plex Playback Menu~          |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please select from the following options"'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
@@ -873,18 +873,18 @@ create_plex_libraries_list() {
 
 # Function to display the library menu
 library_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*         ~Plex Libraries Menu~         *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|         ~Plex Libraries Menu~         |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please select from the following options:'
   echo ''
 }
 
 # Function to display the search menu
 search_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*        ~Plex Media Search Menu~       *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|        ~Plex Media Search Menu~       |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please select the category you would like to search:'
   echo ''
   echo -e "${bold} 1)${endColor} TV Shows"
@@ -923,9 +923,9 @@ search_menu() {
 
 # Function to display the endpoint config menu
 endpoint_menu(){
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*     ~Endpoint Configuration Menu~     *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|     ~Endpoint Configuration Menu~     |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please choose which application you would'
   echo '   like to configure for MediaButler:    '
   echo ''
@@ -969,9 +969,9 @@ endpoint_menu(){
 
 # Function to display the Sonarr sub-menu
 sonarr_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*          ~Sonarr Setup Menu~          *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|          ~Sonarr Setup Menu~          |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please choose which version of Sonarr you'
   echo 'would like to configure for MediaButler: '
   echo ''
@@ -1001,9 +1001,9 @@ sonarr_menu() {
 
 # Function to display the Radarr sub-menu
 radarr_menu() {
-  echo -e "${bold}*****************************************${endColor}"
-  echo -e "${bold}*          ~Radarr Setup Menu~          *${endColor}"
-  echo -e "${bold}*****************************************${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
+  echo -e "${bold}|          ~Radarr Setup Menu~          |${endColor}"
+  echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please choose which version of Radarr you'
   echo 'would like to configure for MediaButler: '
   echo ''
