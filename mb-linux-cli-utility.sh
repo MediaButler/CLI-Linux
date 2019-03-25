@@ -383,9 +383,9 @@ get_plex_creds() {
   echo 'First thing we need to get started are your Plex credentials.'
   echo 'Please choose from one of the following options:'
   echo ''
-  echo -e "${bold} 1)${endColor} Plex Username & Password"
-  echo -e "${bold} 2)${endColor} Plex Auth Token"
-  echo -e "${bold} 3)${endColor} Exit"
+  echo -e "${bold}  1)${endColor} Plex Username & Password"
+  echo -e "${bold}  2)${endColor} Plex Auth Token"
+  echo -e "${bold}  3)${endColor} Exit"
   echo ''
   read -rp 'Selection: ' plexCredsOption
   echo ''
@@ -492,7 +492,7 @@ create_plex_servers_list() {
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'plexServers=($(cat "${plexServersFile}"))'
   for ((i = 0; i < ${#plexServers[@]}; ++i)); do
     position=$(( i + 1 ))
-    echo -e "${bold} $position)${endColor} ${plexServers[$i]}"
+    echo -e "${bold}  $position)${endColor} ${plexServers[$i]}"
   done > "${numberedPlexServersFile}"
 }
 
@@ -505,7 +505,7 @@ prompt_for_plex_server() {
     echo 'Please choose which Plex Server you would like to setup MediaButler for:'
     echo ''
     cat "${numberedPlexServersFile}"
-    echo -e "${bold} ${cancelOption})${endColor} Cancel"
+    echo -e "${bold}  ${cancelOption})${endColor} Cancel"
     echo ''
     read -p "Server: " plexServerSelection
     if [[ "${plexServerSelection}" -lt '1' ]] || [[ "${plexServerSelection}" -gt "${cancelOption}" ]]; then
@@ -681,14 +681,14 @@ main_menu() {
   echo 'Please select from the following options:'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
-  echo -e "${bold} 1)${endColor} Configure Applications${red}*${endColor}"
-  echo -e "${bold} 2)${endColor} Plex Media Requests"
-  echo -e "${bold} 3)${endColor} Plex Media Issues"
-  echo -e "${bold} 4)${endColor} Plex Playback Information"
-  echo -e "${bold} 5)${endColor} Plex Library Information"
-  echo -e "${bold} 6)${endColor} Plex Media Search"
-  echo -e "${bold} 7)${endColor} Reset Configuration"
-  echo -e "${bold} 8)${endColor} Exit"
+  echo -e "${bold}  1)${endColor} Configure Applications${red}*${endColor}"
+  echo -e "${bold}  2)${endColor} Plex Media Requests"
+  echo -e "${bold}  3)${endColor} Plex Media Issues"
+  echo -e "${bold}  4)${endColor} Plex Playback Information"
+  echo -e "${bold}  5)${endColor} Plex Library Information"
+  echo -e "${bold}  6)${endColor} Plex Media Search"
+  echo -e "${bold}  7)${endColor} Reset Configuration"
+  echo -e "${bold}  8)${endColor} Exit"
   echo ''
   read -rp 'Selection: ' mainMenuSelection
   echo ''
@@ -729,9 +729,9 @@ requests_menu() {
   echo 'Please select from the following options:'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
-  echo -e "${bold} 1)${endColor} Submit Request"
-  echo -e "${bold} 2)${endColor} Manage Requests${red}*${endColor}"
-  echo -e "${bold} 3)${endColor} Back to Main Menu"
+  echo -e "${bold}  1)${endColor} Submit Request"
+  echo -e "${bold}  2)${endColor} Manage Requests${red}*${endColor}"
+  echo -e "${bold}  3)${endColor} Back to Main Menu"
   echo ''
   read -rp 'Selection: ' requestsMenuSelection
   echo ''
@@ -763,10 +763,10 @@ submit_request_menu() {
   echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'What would you like to request?'
   echo ''
-  echo -e "${bold} 1)${endColor} TV Show"
-  echo -e "${bold} 2)${endColor} Movie"
-  echo -e "${bold} 3)${endColor} Music"
-  echo -e "${bold} 4)${endColor} Back to Main Menu"
+  echo -e "${bold}  1)${endColor} TV Show"
+  echo -e "${bold}  2)${endColor} Movie"
+  echo -e "${bold}  3)${endColor} Music"
+  echo -e "${bold}  4)${endColor} Back to Main Menu"
   echo ''
   read -rp 'Selection: ' submitRequestMenuSelection
   echo ''
@@ -798,9 +798,9 @@ issues_menu() {
   echo 'Please select from the following options"'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
-  echo -e "${bold} 1)${endColor} Add Issue"
-  echo -e "${bold} 2)${endColor} Manage Issues${red}*${endColor}"
-  echo -e "${bold} 3)${endColor} Back to Main Menu"
+  echo -e "${bold}  1)${endColor} Add Issue"
+  echo -e "${bold}  2)${endColor} Manage Issues${red}*${endColor}"
+  echo -e "${bold}  3)${endColor} Back to Main Menu"
   echo ''
   read -rp 'Selection: ' issuesMenuSelection
   echo ''
@@ -839,9 +839,9 @@ playback_menu() {
   echo 'Please select from the following options"'
   echo -e "        (${red}*${endColor} indicates Admin only)         "
   echo ''
-  echo -e "${bold} 1)${endColor} Playback History"
-  echo -e "${bold} 2)${endColor} Now Playing${red}*${endColor}"
-  echo -e "${bold} 3)${endColor} Back to Main Menu"
+  echo -e "${bold}  1)${endColor} Playback History"
+  echo -e "${bold}  2)${endColor} Now Playing${red}*${endColor}"
+  echo -e "${bold}  3)${endColor} Back to Main Menu"
   echo ''
   read -rp 'Selection: ' playbackMenuSelection
   echo ''
@@ -887,11 +887,11 @@ search_menu() {
   echo -e "${bold}+---------------------------------------+${endColor}"
   echo 'Please select the category you would like to search:'
   echo ''
-  echo -e "${bold} 1)${endColor} TV Shows"
-  echo -e "${bold} 2)${endColor} Movies"
-  echo -e "${bold} 3)${endColor} Music"
-  echo -e "${bold} 4)${endColor} Everything"
-  echo -e "${bold} 5)${endColor} Back to Main Menu"
+  echo -e "${bold}  1)${endColor} TV Shows"
+  echo -e "${bold}  2)${endColor} Movies"
+  echo -e "${bold}  3)${endColor} Music"
+  echo -e "${bold}  4)${endColor} Everything"
+  echo -e "${bold}  5)${endColor} Back to Main Menu"
   echo ''
   read -rp 'Selection: ' searchMenuSelection
   echo ''
@@ -930,25 +930,25 @@ endpoint_menu(){
   echo '   like to configure for MediaButler:    '
   echo ''
   if [[ "${sonarrURLStatus}" = 'ok' ]] && [[ "${sonarrAPIKeyStatus}" = 'ok' ]] && [[ "${sonarr4kURLStatus}" = 'ok' ]] && [[ "${sonarr4kAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "${bold} 1)${endColor} ${grn}Sonarr${endColor}"
+    echo -e "${bold}  1)${endColor} ${grn}Sonarr${endColor}"
   elif [[ "${sonarrURLStatus}" = 'invalid' ]] && [[ "${sonarrAPIKeyStatus}" = 'invalid' ]] && [[ "${sonarr4kURLStatus}" = 'invalid' ]] && [[ "${sonarr4kAPIKeyStatus}" = 'invalid' ]]; then
-    echo -e "${bold} 1)${endColor} ${red}Sonarr${endColor}"
+    echo -e "${bold}  1)${endColor} ${red}Sonarr${endColor}"
   else
-    echo -e "${bold} 1)${endColor} ${ylw}Sonarr${endColor}"
+    echo -e "${bold}  1)${endColor} ${ylw}Sonarr${endColor}"
   fi
   if [[ "${radarrURLStatus}" = 'ok' ]] && [[ "${radarrAPIKeyStatus}" = 'ok' ]] && [[ "${radarr4kURLStatus}" = 'ok' ]] && [[ "${radarr4kAPIKeyStatus}" = 'ok' ]] && [[ "${radarr3dURLStatus}" = 'ok' ]] && [[ "${radarr3dAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "${bold} 2)${endColor} ${grn}Radarr${endColor}"
+    echo -e "${bold}  2)${endColor} ${grn}Radarr${endColor}"
   elif [[ "${radarrURLStatus}" = 'invalid' ]] && [[ "${radarrAPIKeyStatus}" = 'invalid' ]] && [[ "${radarr4kURLStatus}" = 'invalid' ]] && [[ "${radarr4kAPIKeyStatus}" = 'invalid' ]] && [[ "${radarr3dURLStatus}" = 'invalid' ]] && [[ "${radarr3dAPIKeyStatus}" = 'invalid' ]]; then
-    echo -e "${bold} 2)${endColor} ${red}Radarr${endColor}"
+    echo -e "${bold}  2)${endColor} ${red}Radarr${endColor}"
   else
-    echo -e "${bold} 2)${endColor} ${ylw}Radarr${endColor}"
+    echo -e "${bold}  2)${endColor} ${ylw}Radarr${endColor}"
   fi
   if [[ "${tautulliURLStatus}" = 'ok' ]] && [[ "${tautulliAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "${bold} 3)${endColor} ${grn}Tautulli${endColor}"
+    echo -e "${bold}  3)${endColor} ${grn}Tautulli${endColor}"
   else
-    echo -e "${bold} 3)${endColor} ${red}Tautulli${endColor}"
+    echo -e "${bold}  3)${endColor} ${red}Tautulli${endColor}"
   fi
-  echo -e "${bold} 4)${endColor} Back to Main Menu"
+  echo -e "${bold}  4)${endColor} Back to Main Menu"
   echo ''
   read -rp 'Selection: ' endpointMenuSelection
   echo ''
@@ -976,16 +976,16 @@ sonarr_menu() {
   echo 'would like to configure for MediaButler: '
   echo ''
   if [[ "${sonarrURLStatus}" = 'ok' ]] && [[ "${sonarrAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "${bold} 1)${endColor} ${grn}Sonarr${endColor}"
+    echo -e "${bold}  1)${endColor} ${grn}Sonarr${endColor}"
   else
-    echo -e "${bold} 1)${endColor} ${red}Sonarr${endColor}"
+    echo -e "${bold}  1)${endColor} ${red}Sonarr${endColor}"
   fi
   if [[ "${sonarr4kURLStatus}" = 'ok' ]] && [[ "${sonarr4kAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "${bold} 2)${endColor} ${grn}Sonarr 4K${endColor}"
+    echo -e "${bold}  2)${endColor} ${grn}Sonarr 4K${endColor}"
   else
-    echo -e "${bold} 2)${endColor} ${red}Sonarr 4K${endColor}"
+    echo -e "${bold}  2)${endColor} ${red}Sonarr 4K${endColor}"
   fi
-  echo -e "${bold} 3)${endColor} Back to Endpoint Menu"
+  echo -e "${bold}  3)${endColor} Back to Endpoint Menu"
   echo ''
   read -rp 'Selection: ' sonarrMenuSelection
   echo ''
@@ -1008,21 +1008,21 @@ radarr_menu() {
   echo 'would like to configure for MediaButler: '
   echo ''
   if [[ "${radarrURLStatus}" = 'ok' ]] && [[ "${radarrAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "${bold} 1)${endColor} ${grn}Radarr${endColor}"
+    echo -e "${bold}  1)${endColor} ${grn}Radarr${endColor}"
   else
-    echo -e "${bold} 1)${endColor} ${red}Radarr${endColor}"
+    echo -e "${bold}  1)${endColor} ${red}Radarr${endColor}"
   fi
   if [[ "${radarr4kURLStatus}" = 'ok' ]] && [[ "${radarr4kAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "${bold} 2)${endColor} ${grn}Radarr 4K${endColor}"
+    echo -e "${bold}  2)${endColor} ${grn}Radarr 4K${endColor}"
   else
-    echo -e "${bold} 2)${endColor} ${red}Radarr 4K${endColor}"
+    echo -e "${bold}  2)${endColor} ${red}Radarr 4K${endColor}"
   fi
   if [[ "${radarr3dURLStatus}" = 'ok' ]] && [[ "${radarr3dAPIKeyStatus}" = 'ok' ]]; then
-    echo -e "${bold} 3)${endColor} ${grn}Radarr 3D${endColor}"
+    echo -e "${bold}  3)${endColor} ${grn}Radarr 3D${endColor}"
   else
-    echo -e "${bold} 3)${endColor} ${red}Radarr 3D${endColor}"
+    echo -e "${bold}  3)${endColor} ${red}Radarr 3D${endColor}"
   fi
-  echo -e "${bold} 4)${endColor} Back to Endpoint Menu"
+  echo -e "${bold}  4)${endColor} Back to Endpoint Menu"
   echo ''
   read -rp 'Selection: ' radarrMenuSelection
   echo ''
@@ -1043,7 +1043,7 @@ create_arr_profiles_list() {
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'arrProfiles=($(cat "${arrProfilesFile}"))'
   for ((i = 0; i < ${#arrProfiles[@]}; ++i)); do
     position=$(( i + 1 ))
-    echo -e "${bold} $position)${endColor} ${arrProfiles[$i]}"
+    echo -e "${bold}  $position)${endColor} ${arrProfiles[$i]}"
   done > "${numberedArrProfilesFile}"
 }
 
@@ -1054,7 +1054,7 @@ prompt_for_arr_profile() {
   echo 'Please choose which profile you would like to set as the default for MediaButler:'
   echo ''
   cat "${numberedArrProfilesFile}"
-  echo -e "${bold} ${cancelOption})${endColor} Cancel"
+  echo -e "${bold}  ${cancelOption})${endColor} Cancel"
   echo ''
   read -p "Profile (1-${cancelOption}): " arrProfilesSelection
   echo ''
@@ -1108,7 +1108,7 @@ create_arr_root_dirs_list() {
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'arrRootDirs=($(cat "${arrRootDirsFile}"))'
   for ((i = 0; i < ${#arrRootDirs[@]}; ++i)); do
     position=$(( i + 1 ))
-    echo -e "${bold} $position)${endColor} ${arrRootDirs[$i]}"
+    echo -e "${bold}  $position)${endColor} ${arrRootDirs[$i]}"
   done > "${numberedArrRootDirsFile}"
 }
 
@@ -1119,7 +1119,7 @@ prompt_for_arr_root_dir() {
   echo 'Please choose which root directory you would like to set as the default for MediaButler:'
   echo ''
   cat "${numberedArrRootDirsFile}"
-  echo -e "${bold} ${cancelOption})${endColor} Cancel"
+  echo -e "${bold}  ${cancelOption})${endColor} Cancel"
   echo ''
   read -p "Root Dir (1-${cancelOption}): " arrRootDirsSelection
   echo ''
