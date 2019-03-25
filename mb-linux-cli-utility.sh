@@ -362,6 +362,11 @@ reset(){
     reset_radarr3d
     reset_tautulli
     cleanup
+    echo ''
+    echo -e "${grn}All saved configuration in the script has been reset.${endColor}"
+    echo -e "${ylw}Exiting the script...${endColor}"
+    echo ''
+    sleep 3
     clear >&2
     exit 0
   elif [[ "${resetConfirmation}" =~ ^(no|n|No|N)$ ]]; then
@@ -373,10 +378,14 @@ reset(){
 # Function to prompt user for Plex credentials or token
 get_plex_creds() {
   endpoint='plex'
-  echo 'First thing we need are your Plex credentials so please choose from one of the following options:'
+  echo 'Welcome to the MediaButler Linux CLI Utility!'
+  echo ''
+  echo 'First thing we need to get started are your Plex credentials.'
+  echo 'Please choose from one of the following options:'
   echo ''
   echo -e "${bold} 1)${endColor} Plex Username & Password"
   echo -e "${bold} 2)${endColor} Plex Auth Token"
+  echo -e "${bold} 3)${endColor} Exit"
   echo ''
   read -rp 'Selection: ' plexCredsOption
   echo ''
@@ -391,6 +400,9 @@ get_plex_creds() {
     echo 'Please enter your Plex token:'
     read -rs plexToken
     echo ''
+  elif [ "${plexCredsOption}" == '2' ]; then
+    exit 0
+    clear >&2
   else
     echo 'You provided an invalid option, please try again.'
     sleep 3
