@@ -389,7 +389,13 @@ get_plex_creds() {
   echo ''
   read -rp 'Selection: ' plexCredsOption
   echo ''
-  if [ "${plexCredsOption}" == '1' ]; then
+  if ! [[ "${plexCredsOption}" =~ ^(1|2|3)$ ]]; then
+    echo -e "${red}You provided an invalid option, please try again.${endColor}"
+    sleep 3
+    reset_plex
+    clear >&2
+    exit 0
+  elif [ "${plexCredsOption}" == '1' ]; then
     echo 'Please enter your Plex username:'
     read -r plexUsername
     echo ''
@@ -403,12 +409,6 @@ get_plex_creds() {
   elif [ "${plexCredsOption}" == '2' ]; then
     exit 0
     clear >&2
-  else
-    echo 'You provided an invalid option, please try again.'
-    sleep 3
-    reset_plex
-    clear >&2
-    exit 0
   fi
 }
 
