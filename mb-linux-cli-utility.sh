@@ -526,23 +526,19 @@ prompt_for_plex_server() {
   plexServerArrayElement=$((plexServerSelection-1))
   selectedPlexServerName=$(jq .servers["${plexServerArrayElement}"].name "${plexCredsFile}" |tr -d '"')
   plexServerMachineID=$(jq .servers["${plexServerArrayElement}"].machineId "${plexCredsFile}" |tr -d '"')
-  #userMBURL=$(curl -s -L -X POST "${mbDiscoverURL}" \
-  #  -H "Content-Type: application/x-www-form-urlencoded" \
-  #  -H "${mbClientID}" \
-  #  --data "authToken=${plexToken}&machineId=${plexServerMachineID}")
-  userMBURL=$(curl -s -L -X GET "${mbDiscoverURL}" \
+  userMBURL=$(curl --connect-timeout 10 -m 15 -s -L -X GET "${mbDiscoverURL}" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "MB-Plex-Token: ${plexToken}" \
     -H "MB-Machine-Identifier: ${plexServerMachineID}")
-  if [[ "${userMBURL}" != *'Error'* ]]; then
-    :
-  elif [[ "${userMBURL}" =~ 'Error' ]]; then
+  if [[ "${userMBURL}" =~ 'Error' ]] || [[ "${userMBURL}" = '' ]]; then
     echo -e "${red}Unable to automatically retrieve your MediaButler URL!${endColor}"
     echo -e "${ylw}This is typically indicative of port 9876 not being forwarded.${endColor}"
     echo -e "${ylw}Please check your port forwarding and then try again.${endColor}"
     reset_plex
     exit 0
+  elif [[ "${userMBURL}" != *'Error'* ]]; then
+    :
   fi
   plexServerMBToken=$(jq .servers["${plexServerArrayElement}"].token "${plexCredsFile}" |tr -d '"')
   echo -e "${grn}Done!${endColor}"
@@ -616,20 +612,33 @@ prompt_for_plex_server() {
 
 # Function to determine whether user has admin permissions to the selected Plex Server
 check_admin() {
-  adminCheckContentResponse=$(curl -s -o "${adminCheckFile}" -w "%{content_type}" -L -X GET "${userMBURL}user/@me/" \
+  adminCheckHTTPResponse=$(curl -s --connect-timeout 10 -m 15 -o "${adminCheckFile}" -w "%{http_code}" -L -X GET "${userMBURL}user/@me/" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -H "${mbClientID}" \
   -H "Authorization: Bearer ${plexServerMBToken}")
-  if [[ "${adminCheckContentResponse}" =~ 'json' ]]; then
-    set +e
-    adminCheckResponse=$(grep -i admin "${adminCheckFile}" |awk '{print $1}' |tr -d '"')
-    set -e
-    if [[ "${adminCheckResponse}" =~ 'ADMIN' ]]; then
-      isAdmin='true'
-    elif [[ "${adminCheckResponse}" != *'ADMIN'* ]] || [[ "${adminCheckResponse}" == '' ]]; then
-      isAdmin='false'
+  if [ "${adminCheckHTTPResponse}" = '200' ]; then
+    adminCheckContentResponse=$(curl -s --connect-timeout 10 -m 15 -o "${adminCheckFile}" -w "%{content_type}" -L -X GET "${userMBURL}user/@me/" \
+    -H 'Content-Type: application/x-www-form-urlencoded' \
+    -H "${mbClientID}" \
+    -H "Authorization: Bearer ${plexServerMBToken}")
+    if [[ "${adminCheckContentResponse}" =~ 'json' ]]; then
+      set +e
+      adminCheckResponse=$(grep -i admin "${adminCheckFile}" |awk '{print $1}' |tr -d '"')
+      set -e
+      if [[ "${adminCheckResponse}" =~ 'ADMIN' ]]; then
+        isAdmin='true'
+      elif [[ "${adminCheckResponse}" != *'ADMIN'* ]] || [[ "${adminCheckResponse}" == '' ]]; then
+        isAdmin='false'
+      fi
+    elif [[ "${adminCheckContentResponse}" != *'json'* ]] || [[ "${adminCheckContentResponse}" == '' ]]; then
+      echo -e "${red}There was an issue checking your permissions for the selected Plex Server!${endColor}"
+      echo -e "${ylw}Please make sure your MediaButler API is functioning properly and try again.${endColor}"
+      sleep 3
+      reset_plex
+      clear >&2
+      exit 0
     fi
-  elif [[ "${adminCheckContentResponse}" != *'json'* ]]; then
+  elif [ "${adminCheckHTTPResponse}" != '200' ]; then
     echo -e "${red}There was an issue checking your permissions for the selected Plex Server!${endColor}"
     echo -e "${ylw}Please make sure your MediaButler API is functioning properly and try again.${endColor}"
     sleep 3
