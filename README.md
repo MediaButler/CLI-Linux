@@ -14,7 +14,7 @@ A command line tool to enable usage of the [MediaButler Server](https://github.c
  - [x] Can configure Sonarr/Radarr/Tautulli for use with the [Server](https://github.com/MediaButler/Server)
  - [x] Add and Manage Requests
  - [ ] Add and Manage Issues
- - [ ] Media Search
+ - [x] Media Search
  - [x] Retrieve currently playing statistics
  - [x] Playback History
 
