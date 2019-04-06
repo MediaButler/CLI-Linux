@@ -2753,7 +2753,7 @@ configure_perms() {
       fi
     fi
   elif [ "${permsMenuSelection}" = '3' ]; then
-    echo -e "${red}**WARNING!!!** This will reset ALL permissions for the ${endColor}${ylw}${selectedUser}${endColor}${red}!${endColor}"
+    echo -e "${red}**WARNING!!!** This will reset ALL permissions for the user ${endColor}${ylw}${selectedUser}${endColor}${red}!${endColor}"
     echo -e "${ylw}Do you wish to continue?${endColor}"
     echo ''
     echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
