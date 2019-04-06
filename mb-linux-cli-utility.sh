@@ -1099,11 +1099,12 @@ permissions_menu() {
   echo -e "${bold}  1)${endColor} Add Permissions"
   echo -e "${bold}  2)${endColor} Remove Permissions"
   echo -e "${bold}  3)${endColor} Reset User"
-  echo -e "${bold}  4)${endColor} Back to Main Menu"
+  echo -e "${bold}  4)${endColor} Select Another User"
+  echo -e "${bold}  5)${endColor} Back to Main Menu"
   echo ''
   read -rp 'Selection: ' permsMenuSelection
   echo ''
-  if ! [[ "${permsMenuSelection}" =~ ^(1|2|3|4)$ ]]; then
+  if ! [[ "${permsMenuSelection}" =~ ^(1|2|3|4|5)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
     permissions_menu
   elif [[ "${permsMenuSelection}" =~ ^(1|2|3)$ ]]; then
@@ -1113,6 +1114,8 @@ permissions_menu() {
     create_numbered_user_possible_perms_list
     configure_perms
   elif [ "${permsMenuSelection}" = '4' ]; then
+    prompt_for_mb_user
+  elif [ "${permsMenuSelection}" = '5' ]; then
     main_menu
   fi
 }
@@ -2589,7 +2592,8 @@ prompt_for_mb_user() {
   cancelOption=$((numberOfOptions+1))
   echo 'Which user would you like to manage permissions for?'
   echo ''
-  cat "${numberedUsersListFile}" |column
+  #cat "${numberedUsersListFile}" |column
+  column "${numberedUsersListFile}"
   echo -e "${bold}  ${cancelOption})${endColor} Cancel"
   echo ''
   read -p "User (1-${cancelOption}): " userSelection
