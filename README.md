@@ -1,3 +1,5 @@
+<p align="center"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/mb_small.png"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/bash_small.jpg"></p>
+
 # MediaButler Linux CLI Utility
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bf0b65fe02504b60a2439070c45dc3f8)](https://www.codacy.com/app/christronyxyocum/CLI-Linux?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MediaButler/CLI-Linux&amp;utm_campaign=Badge_Grade)
