@@ -1,4 +1,4 @@
-<p align="center"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/mb_small.png"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/bash_small.jpg"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-cli-linux/assets/Images/mb_small.png"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-cli-linux/assets/Images/bash_small.jpg"></p>
 
 # MediaButler Linux CLI Utility
 
