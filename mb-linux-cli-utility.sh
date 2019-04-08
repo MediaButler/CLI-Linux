@@ -2064,7 +2064,7 @@ setup_tautulli() {
 now_playing() {
   if [[ ${tautulliEndpointConfigured} == 'false' ]]; then
     echo -e "${red}Your Tautulli endpoint has not been configured yet!${endColor}"
-    exit 0
+    playback_menu
   elif [[ ${tautulliEndpointConfigured} == 'true' ]]; then
     endpoint='tautulli'
     numberOfCurrentStreams=$(curl -s -L -X GET "${userMBURL}${endpoint}/activity" \
@@ -2167,7 +2167,7 @@ now_playing() {
 playback_history() {
   if [[ ${tautulliEndpointConfigured} == 'false' ]]; then
     echo -e "${red}Your Tautulli endpoint has not been configured yet!${endColor}"
-    exit 0
+    playback_menu
   elif [[ ${tautulliEndpointConfigured} == 'true' ]]; then
     endpoint='tautulli'
     curl -s -L -X GET "${userMBURL}${endpoint}/history" \
