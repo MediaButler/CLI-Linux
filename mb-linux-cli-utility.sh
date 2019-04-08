@@ -675,9 +675,9 @@ check_endpoint_configs() {
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'availableEndpoints=($(cat "${endpointsListFile}"))'
   for endpoint in "${availableEndpoints[@]}"; do
     endpointConfigCheckResponse=$(curl -s --connect-timeout 10 -m 15 -X GET "${userMBURL}configure/${endpoint}" \
-      -H 'Content-Type: application/x-www-form-urlencoded'  \
+      -H 'Content-Type: application/x-www-form-urlencoded' \
       -H "${mbClientID}" \
-      -H "Authorization: Bearer ${plexServerMBToken}" |jq .settings)
+      -H "Authorization: Bearer ${plexServerMBToken}" | jq .settings)
     if [[ ${endpointConfigCheckResponse} == '{}' ]]; then
       if [[ ${endpoint} == 'sonarr' ]]; then
         sonarrEndpointConfigured='false'
