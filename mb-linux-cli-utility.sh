@@ -145,30 +145,30 @@ root_check() {
 # Function to check if the installed version of Bash is >=4 and, if not, exit w/ message
 check_bash() {
   bashMajorVersion=$(bash --version | head -1 | awk '{print $4}' | cut -c1)
-  if [ "${bashMajorVersion}" -lt '4' ]; then
+  if [[ ${bashMajorVersion} -lt '4' ]]; then
     echo -e "${red}This script requires Bash v4 or higher!${endColor}"
     echo -e "${ylw}Please upgrade Bash on this system and then try again.${endColor}"
-  elif [ "${bashMajorVersion}" -ge '4' ]; then
+  elif [[ ${bashMajorVersion} -ge '4' ]]; then
     :
   fi
 }
 
 # Function to check if the installed version of Sed is >= and, if not,  exit w/ message
 check_sed() {
-  if [ "${packageManager}" = 'mac' ]; then
+  if [[ ${packageManager} == 'mac' ]]; then
     sedMajorVersion=$(gsed --version | head -1 | awk '{print $4}' | cut -c1)
   else
     sedMajorVersion=$(sed --version | head -1 | awk '{print $4}' | cut -c1)
   fi
-  if [ "${sedMajorVersion}" -lt '4' ]; then
+  if [[ ${sedMajorVersion} -lt '4' ]]; then
     echo -e "${red}This script requires Sed v4 or higher!${endColor}"
     echo -e "${ylw}Please upgrade Sed on this system and then try again.${endColor}"
-    if [ "${packageManager}" = 'mac' ]; then
+    if [[ ${packageManager} == 'mac' ]]; then
       echo -e "${ylw}If you are on a Mac you will need to install/upgrade gnu-sed.${endColor}"
     else
       :
     fi
-  elif [ "${sedMajorVersion}" -ge '4' ]; then
+  elif [[ ${sedMajorVersion} -ge '4' ]]; then
     :
   fi
 }
@@ -198,7 +198,7 @@ package_manager() {
 check_curl() {
   set +e
   whichCURL=$(which curl)
-  if [ -z "${whichCURL}" ]; then
+  if [[ -z ${whichCURL} ]]; then
     echo -e "${red}cURL is not currently installed!${endColor}"
     echo -e "${ylw}Doing it for you now...${endColor}"
     "${tempDir}"pacapt install curl
@@ -206,7 +206,7 @@ check_curl() {
     :
   fi
   whichCURL=$(which curl)
-  if [ -z "${whichCURL}" ]; then
+  if [[ -z ${whichCURL} ]]; then
     echo -e "${red}We tried, and failed, to install cURL!${endColor}"
     clear >&2
     exit 1
@@ -220,7 +220,7 @@ check_curl() {
 check_jq() {
   set +e
   whichJQ=$(which jq)
-  if [ -z "${whichJQ}" ]; then
+  if [[ -z ${whichJQ} ]]; then
     echo -e "${red}JQ is not currently installed!${endColor}"
     echo -e "${ylw}Doing it for you now...${endColor}"
     "${tempDir}"pacapt install jq
@@ -228,7 +228,7 @@ check_jq() {
     :
   fi
   whichJQ=$(which jq)
-  if [ -z "${whichJQ}" ]; then
+  if [[ -z ${whichJQ} ]]; then
     echo -e "${red}We tried, and failed, to install JQ!${endColor}"
     clear >&2
     exit 1
@@ -265,19 +265,19 @@ trap 'cleanup' 0 1 3 6 14 15
 # Function to exit the script if the user hits CTRL+C
 control_c() {
   cleanup
-  if [ "${endpoint}" = 'plex' ]; then
+  if [[ ${endpoint} == 'plex' ]]; then
     reset_plex
-  elif [ "${endpoint}" = 'sonarr' ]; then
+  elif [[ ${endpoint} == 'sonarr' ]]; then
     reset_sonarr
-  elif [ "${endpoint}" = 'sonarr4k' ]; then
+  elif [[ ${endpoint} == 'sonarr4k' ]]; then
     reset_sonarr4k
-  elif [ "${endpoint}" = 'radarr' ]; then
+  elif [[ ${endpoint} == 'radarr' ]]; then
     reset_radarr
-  elif [ "${endpoint}" = 'radarr4k' ]; then
+  elif [[ ${endpoint} == 'radarr4k' ]]; then
     reset_radarr4k
-  elif [ "${endpoint}" = 'radarr3d' ]; then
+  elif [[ ${endpoint} == 'radarr3d' ]]; then
     reset_radarr3d
-  elif [ "${endpoint}" = 'tautulli' ]; then
+  elif [[ ${endpoint} == 'tautulli' ]]; then
     reset_tautulli
   fi
   clear >&2
@@ -410,18 +410,18 @@ get_plex_creds() {
     reset_plex
     clear >&2
     exit 0
-  elif [ "${plexCredsOption}" == '1' ]; then
+  elif [[ ${plexCredsOption} == '1' ]]; then
     echo 'Please enter your Plex username:'
     read -r plexUsername
     echo ''
     echo 'Please enter your Plex password:'
     read -rs plexPassword
     echo ''
-  elif [ "${plexCredsOption}" == '2' ]; then
+  elif [[ ${plexCredsOption} == '2' ]]; then
     echo 'Please enter your Plex token:'
     read -rs plexToken
     echo ''
-  elif [ "${plexCredsOption}" == '3' ]; then
+  elif [[ ${plexCredsOption} == '3' ]]; then
     reset_plex
     clear >&2
     exit 0
@@ -431,9 +431,9 @@ get_plex_creds() {
 # Function to check that the provided Plex credentials are valid
 check_plex_creds() {
   endpoint='plex'
-  while [ "${plexCredsStatus}" = 'invalid' ]; do
+  while [[ ${plexCredsStatus} == 'invalid' ]]; do
     echo "Now we're going to make sure you provided valid credentials..."
-    if [ "${plexCredsOption}" == '1' ]; then
+    if [[ ${plexCredsOption} == '1' ]]; then
       curl -s -L -X POST "${mbLoginURL}" \
         -H "${mbClientID}" \
         --data "username=${plexUsername}&password=${plexPassword}" | jq . > "${plexCredsFile}"
@@ -453,7 +453,7 @@ check_plex_creds() {
         echo -e "${grn}Success!${endColor}"
         echo ''
       fi
-    elif [ "${plexCredsOption}" == '2' ]; then
+    elif [[ ${plexCredsOption} == '2' ]]; then
       curl -s -L -X POST "${mbLoginURL}" \
         -H "${mbClientID}" \
         -H "Content-Type: application/x-www-form-urlencoded" \
@@ -478,7 +478,7 @@ check_plex_creds() {
 # Function to get user's Plex token if the chose to use credentials
 get_plex_token() {
   endpoint='plex'
-  if [ "${plexCredsOption}" == '1' ]; then
+  if [[ ${plexCredsOption} == '1' ]]; then
     plexToken=$(curl -s -X "POST" "https://plex.tv/users/sign_in.json" \
       -H "X-Plex-Version: 1.0.0" \
       -H "X-Plex-Product: MediaButler" \
@@ -487,7 +487,7 @@ get_plex_token() {
       --data-urlencode "user[password]=${plexPassword}" \
       --data-urlencode "user[login]=${plexUsername}" | jq .user.authToken | tr -d '"')
     echo "${plexToken}" > "${plexTokenFile}"
-  elif [ "${plexCredsOption}" == '2' ]; then
+  elif [[ ${plexCredsOption} == '2' ]]; then
     echo "${plexToken}" > "${plexTokenFile}"
   else
     :
@@ -517,7 +517,7 @@ prompt_for_plex_server() {
   endpoint='plex'
   numberOfOptions=$(echo "${#plexServers[@]}")
   cancelOption=$((numberOfOptions + 1))
-  while [ "${plexServerStatus}" = 'invalid' ]; do
+  while [[ ${plexServerStatus} == 'invalid' ]]; do
     echo 'Please choose which Plex Server you would like to setup MediaButler for:'
     echo ''
     cat "${numberedPlexServersFile}"
@@ -527,7 +527,7 @@ prompt_for_plex_server() {
     if [[ ${plexServerSelection} -lt '1' ]] || [[ ${plexServerSelection} -gt ${cancelOption} ]]; then
       echo -e "${red}You did not specify a valid option!${endColor}"
       reset_plex
-    elif [ "${plexServerSelection}" = "${cancelOption}" ]; then
+    elif [[ ${plexServerSelection} == "${cancelOption}" ]]; then
       reset_plex
       echo ''
       exit 0
@@ -588,7 +588,7 @@ prompt_for_plex_server() {
     else
       mbAPIStatus='bad'
     fi
-    while [ "${mbURLStatus}" = 'invalid' ]; do
+    while [[ ${mbURLStatus} == 'invalid' ]]; do
       if [[ ${mbURLCheckResponse} == '200' ]] && [[ ${mbAPIStatus} == 'ok' ]]; then
         sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='ok'/" "${scriptname}"
         mbURLStatus='ok'
@@ -614,7 +614,7 @@ prompt_for_plex_server() {
         else
           mbAPIStatus='bad'
         fi
-      elif [ ${mbAPIStatus} = 'bad' ]; then
+      elif [[ ${mbAPIStatus} == 'bad' ]]; then
         echo -e "${red}The version of the API that you're running appears to be out of date!${endColor}"
         echo -e "${org}Please update your MediaButler installation before continuing.${endColor}"
         sleep 3
@@ -632,7 +632,7 @@ check_admin() {
     -H 'Content-Type: application/x-www-form-urlencoded' \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}")
-  if [ "${adminCheckHTTPResponse}" = '200' ]; then
+  if [[ ${adminCheckHTTPResponse} == '200' ]]; then
     adminCheckContentResponse=$(curl -s --connect-timeout 10 -m 15 -o "${adminCheckFile}" -w "%{content_type}" -L -X GET "${userMBURL}user/@me/" \
       -H 'Content-Type: application/x-www-form-urlencoded' \
       -H "${mbClientID}" \
@@ -654,7 +654,7 @@ check_admin() {
       clear >&2
       exit 0
     fi
-  elif [ "${adminCheckHTTPResponse}" != '200' ]; then
+  elif [[ ${adminCheckHTTPResponse} != '200' ]]; then
     echo -e "${red}There was an issue checking your permissions for the selected Plex Server!${endColor}"
     echo -e "${ylw}Please make sure your MediaButler API is functioning properly and try again.${endColor}"
     sleep 3
@@ -732,38 +732,38 @@ main_menu() {
   if ! [[ ${mainMenuSelection} =~ ^(1|2|3|4|5|6|7|8|9)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
     main_menu
-  elif [ "${mainMenuSelection}" = '1' ]; then
-    if [ "${isAdmin}" != 'true' ]; then
+  elif [[ ${mainMenuSelection} == '1' ]]; then
+    if [[ ${isAdmin} != 'true' ]]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
       clear >&2
       main_menu
-    elif [ "${isAdmin}" = 'true' ]; then
+    elif [[ ${isAdmin} == 'true' ]]; then
       endpoint_menu
     fi
-  elif [ "${mainMenuSelection}" = '2' ]; then
-    if [ "${isAdmin}" != 'true' ]; then
+  elif [[ ${mainMenuSelection} == '2' ]]; then
+    if [[ ${isAdmin} != 'true' ]]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
       clear >&2
       main_menu
-    elif [ "${isAdmin}" = 'true' ]; then
+    elif [[ ${isAdmin} == 'true' ]]; then
       create_mb_users_list
       prompt_for_mb_user
     fi
-  elif [ "${mainMenuSelection}" = '3' ]; then
+  elif [[ ${mainMenuSelection} == '3' ]]; then
     requests_menu
-  elif [ "${mainMenuSelection}" = '4' ]; then
+  elif [[ ${mainMenuSelection} == '4' ]]; then
     issues_menu
-  elif [ "${mainMenuSelection}" = '5' ]; then
+  elif [[ ${mainMenuSelection} == '5' ]]; then
     playback_menu
-  elif [ "${mainMenuSelection}" = '6' ]; then
+  elif [[ ${mainMenuSelection} == '6' ]]; then
     library_menu
-  elif [ "${mainMenuSelection}" = '7' ]; then
+  elif [[ ${mainMenuSelection} == '7' ]]; then
     search_menu
-  elif [ "${mainMenuSelection}" = '8' ]; then
+  elif [[ ${mainMenuSelection} == '8' ]]; then
     reset
-  elif [ "${mainMenuSelection}" = '9' ]; then
+  elif [[ ${mainMenuSelection} == '9' ]]; then
     exit_menu
   fi
 }
@@ -786,18 +786,18 @@ requests_menu() {
     echo -e "${red}You did not specify a valid option!${endColor}"
     echo ''
     requests_menu
-  elif [ "${requestsMenuSelection}" = '1' ]; then
+  elif [[ ${requestsMenuSelection} == '1' ]]; then
     submit_request_menu
-  elif [ "${requestsMenuSelection}" = '2' ]; then
-    if [ "${isAdmin}" != 'true' ]; then
+  elif [[ ${requestsMenuSelection} == '2' ]]; then
+    if [[ ${isAdmin} != 'true' ]]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
       clear >&2
       main_menu
-    elif [ "${isAdmin}" = 'true' ]; then
+    elif [[ ${isAdmin} == 'true' ]]; then
       manage_requests
     fi
-  elif [ "${requestsMenuSelection}" = '3' ]; then
+  elif [[ ${requestsMenuSelection} == '3' ]]; then
     clear >&2
     main_menu
   fi
@@ -820,18 +820,18 @@ submit_request_menu() {
   if ! [[ ${submitRequestMenuSelection} =~ ^(1|2|3|4)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
     submit_request_menu
-  elif [ "${submitRequestMenuSelection}" = '1' ]; then
+  elif [[ ${submitRequestMenuSelection} == '1' ]]; then
     requestType='tv'
     submit_requests
-  elif [ "${submitRequestMenuSelection}" = '2' ]; then
+  elif [[ ${submitRequestMenuSelection} == '2' ]]; then
     requestType='movie'
     submit_requests
-  elif [ "${submitRequestMenuSelection}" = '3' ]; then
+  elif [[ ${submitRequestMenuSelection} == '3' ]]; then
     requestType='music'
     echo -e "${red}Not setup yet!${endColor}"
     echo ''
     submit_request_menu
-  elif [ "${submitRequestMenuSelection}" = '4' ]; then
+  elif [[ ${submitRequestMenuSelection} == '4' ]]; then
     clear >&2
     main_menu
   fi
@@ -855,24 +855,24 @@ issues_menu() {
     echo -e "${red}You did not specify a valid option!${endColor}"
     echo ''
     issues_menu
-  elif [ "${issuesMenuSelection}" = '1' ]; then
+  elif [[ ${issuesMenuSelection} == '1' ]]; then
     #add_issue_menu
     echo -e "${red}Not setup yet!${endColor}"
     clear >&2
     main_menu
-  elif [ "${issuesMenuSelection}" = '2' ]; then
-    if [ "${isAdmin}" != 'true' ]; then
+  elif [[ ${issuesMenuSelection} == '2' ]]; then
+    if [[ ${isAdmin} != 'true' ]]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
       clear >&2
       main_menu
-    elif [ "${isAdmin}" = 'true' ]; then
+    elif [[ ${isAdmin} == 'true' ]]; then
       #manage_issues_menu
       echo -e "${red}Not setup yet!${endColor}"
       clear >&2
       main_menu
     fi
-  elif [ "${issuesMenuSelection}" = '3' ]; then
+  elif [[ ${issuesMenuSelection} == '3' ]]; then
     clear >&2
     main_menu
   fi
@@ -896,18 +896,18 @@ playback_menu() {
     echo -e "${red}You did not specify a valid option!${endColor}"
     echo ''
     playback_menu
-  elif [ "${playbackMenuSelection}" = '1' ]; then
+  elif [[ ${playbackMenuSelection} == '1' ]]; then
     playback_history
-  elif [ "${playbackMenuSelection}" = '2' ]; then
-    if [ "${isAdmin}" != 'true' ]; then
+  elif [[ ${playbackMenuSelection} == '2' ]]; then
+    if [[ ${isAdmin} != 'true' ]]; then
       echo -e "${red}You do not have permission to access this menu!${endColor}"
       sleep 3
       clear >&2
       main_menu
-    elif [ "${isAdmin}" = 'true' ]; then
+    elif [[ ${isAdmin} == 'true' ]]; then
       now_playing
     fi
-  elif [ "${playbackMenuSelection}" = '3' ]; then
+  elif [[ ${playbackMenuSelection} == '3' ]]; then
     clear >&2
     main_menu
   fi
@@ -946,23 +946,23 @@ search_menu() {
     echo -e "${red}You did not specify a valid option!${endColor}"
     echo ''
     search_menu
-  elif [ "${searchMenuSelection}" = '1' ]; then
+  elif [[ ${searchMenuSelection} == '1' ]]; then
     search_prompt
     search_tv
     search_menu
-  elif [ "${searchMenuSelection}" = '2' ]; then
+  elif [[ ${searchMenuSelection} == '2' ]]; then
     search_prompt
     search_movies
     search_menu
-  elif [ "${searchMenuSelection}" = '3' ]; then
+  elif [[ ${searchMenuSelection} == '3' ]]; then
     search_prompt
     search_music
     search_menu
-  elif [ "${searchMenuSelection}" = '4' ]; then
+  elif [[ ${searchMenuSelection} == '4' ]]; then
     search_prompt
     search_all
     search_menu
-  elif [ "${searchMenuSelection}" = '5' ]; then
+  elif [[ ${searchMenuSelection} == '5' ]]; then
     clear >&2
     main_menu
   fi
@@ -1003,15 +1003,15 @@ endpoint_menu() {
   if ! [[ ${endpointMenuSelection} =~ ^(1|2|3|4|5)$ ]]; then
     echo -e "${red}You did not specify a valid option!${endColor}"
     endpoint_menu
-  elif [ "${endpointMenuSelection}" = '1' ]; then
+  elif [[ ${endpointMenuSelection} == '1' ]]; then
     sonarr_menu
-  elif [ "${endpointMenuSelection}" = '2' ]; then
+  elif [[ ${endpointMenuSelection} == '2' ]]; then
     radarr_menu
-  elif [ "${endpointMenuSelection}" = '3' ]; then
+  elif [[ ${endpointMenuSelection} == '3' ]]; then
     setup_tautulli
-  elif [ "${endpointMenuSelection}" = '4' ]; then
+  elif [[ ${endpointMenuSelection} == '4' ]]; then
     configure_request_limits
-  elif [ "${endpointMenuSelection}" = '5' ]; then
+  elif [[ ${endpointMenuSelection} == '5' ]]; then
     clear >&2
     main_menu
   fi
@@ -1044,7 +1044,7 @@ sonarr_menu() {
     sonarr_menu
   elif [[ ${sonarrMenuSelection} =~ ^(1|2)$ ]]; then
     setup_sonarr
-  elif [ "${sonarrMenuSelection}" = '3' ]; then
+  elif [[ ${sonarrMenuSelection} == '3' ]]; then
     endpoint_menu
   fi
 }
@@ -1081,7 +1081,7 @@ radarr_menu() {
     radarr_menu
   elif [[ ${radarrMenuSelection} =~ ^(1|2|3)$ ]]; then
     setup_radarr
-  elif [ "${radarrMenuSelection}" = '4' ]; then
+  elif [[ ${radarrMenuSelection} == '4' ]]; then
     endpoint_menu
   fi
 }
@@ -1112,9 +1112,9 @@ permissions_menu() {
     create_user_existing_perms_list
     create_numbered_user_possible_perms_list
     configure_perms
-  elif [ "${permsMenuSelection}" = '4' ]; then
+  elif [[ ${permsMenuSelection} == '4' ]]; then
     prompt_for_mb_user
-  elif [ "${permsMenuSelection}" = '5' ]; then
+  elif [[ ${permsMenuSelection} == '5' ]]; then
     main_menu
   fi
 }
@@ -1144,37 +1144,37 @@ prompt_for_arr_profile() {
   if [[ ${arrProfilesSelection} -lt '1' ]] || [[ ${arrProfilesSelection} -gt ${cancelOption} ]]; then
     echo -e "${red}You didn't not specify a valid option!${endColor}"
     echo ''
-    if [ "${endpoint}" = 'sonarr' ]; then
+    if [[ ${endpoint} == 'sonarr' ]]; then
       reset_sonarr
       sonarr_menu
-    elif [ "${endpoint}" = 'sonarr4k' ]; then
+    elif [[ ${endpoint} == 'sonarr4k' ]]; then
       reset_sonarr4k
       sonarr_menu
-    elif [ "${endpoint}" = 'radarr' ]; then
+    elif [[ ${endpoint} == 'radarr' ]]; then
       reset_radarr
       radarr_menu
-    elif [ "${endpoint}" = 'radarr4k' ]; then
+    elif [[ ${endpoint} == 'radarr4k' ]]; then
       reset_radarr4k
       radarr_menu
-    elif [ "${endpoint}" = 'radarr3d' ]; then
+    elif [[ ${endpoint} == 'radarr3d' ]]; then
       reset_radarr3d
       radarr_menu
     fi
-  elif [ "${arrProfilesSelection}" = "${cancelOption}" ]; then
+  elif [[ ${arrProfilesSelection} == "${cancelOption}" ]]; then
     echo ''
-    if [ "${endpoint}" = 'sonarr' ]; then
+    if [[ ${endpoint} == 'sonarr' ]]; then
       reset_sonarr
       sonarr_menu
-    elif [ "${endpoint}" = 'sonarr4k' ]; then
+    elif [[ ${endpoint} == 'sonarr4k' ]]; then
       reset_sonarr4k
       sonarr_menu
-    elif [ "${endpoint}" = 'radarr' ]; then
+    elif [[ ${endpoint} == 'radarr' ]]; then
       reset_radarr
       radarr_menu
-    elif [ "${endpoint}" = 'radarr4k' ]; then
+    elif [[ ${endpoint} == 'radarr4k' ]]; then
       reset_radarr4k
       radarr_menu
-    elif [ "${endpoint}" = 'radarr3d' ]; then
+    elif [[ ${endpoint} == 'radarr3d' ]]; then
       reset_radarr3d
       radarr_menu
     fi
@@ -1209,37 +1209,37 @@ prompt_for_arr_root_dir() {
   if [[ ${arrRootDirsSelection} -lt '1' ]] || [[ ${arrRootDirsSelection} -gt ${cancelOption} ]]; then
     echo -e "${red}You didn't not specify a valid option!${endColor}"
     echo ''
-    if [ "${endpoint}" = 'sonarr' ]; then
+    if [[ ${endpoint} == 'sonarr' ]]; then
       reset_sonarr
       sonarr_menu
-    elif [ "${endpoint}" = 'sonarr4k' ]; then
+    elif [[ ${endpoint} == 'sonarr4k' ]]; then
       reset_sonarr4k
       sonarr_menu
-    elif [ "${endpoint}" = 'radarr' ]; then
+    elif [[ ${endpoint} == 'radarr' ]]; then
       reset_radarr
       radarr_menu
-    elif [ "${endpoint}" = 'radarr4k' ]; then
+    elif [[ ${endpoint} == 'radarr4k' ]]; then
       reset_radarr4k
       radarr_menu
-    elif [ "${endpoint}" = 'radarr3d' ]; then
+    elif [[ ${endpoint} == 'radarr3d' ]]; then
       reset_radarr3d
       radarr_menu
     fi
-  elif [ "${arrRootDirsSelection}" = "${cancelOption}" ]; then
+  elif [[ ${arrRootDirsSelection} == "${cancelOption}" ]]; then
     echo ''
-    if [ "${endpoint}" = 'sonarr' ]; then
+    if [[ ${endpoint} == 'sonarr' ]]; then
       reset_sonarr
       sonarr_menu
-    elif [ "${endpoint}" = 'sonarr4k' ]; then
+    elif [[ ${endpoint} == 'sonarr4k' ]]; then
       reset_sonarr4k
       sonarr_menu
-    elif [ "${endpoint}" = 'radarr' ]; then
+    elif [[ ${endpoint} == 'radarr' ]]; then
       reset_radarr
       radarr_menu
-    elif [ "${endpoint}" = 'radarr4k' ]; then
+    elif [[ ${endpoint} == 'radarr4k' ]]; then
       reset_radarr4k
       radarr_menu
-    elif [ "${endpoint}" = 'radarr3d' ]; then
+    elif [[ ${endpoint} == 'radarr3d' ]]; then
       reset_radarr3d
       radarr_menu
     fi
@@ -1251,14 +1251,14 @@ prompt_for_arr_root_dir() {
 
 # Function to process Sonarr configuration
 setup_sonarr() {
-  if [ "${sonarrMenuSelection}" = '1' ]; then
+  if [[ ${sonarrMenuSelection} == '1' ]]; then
     endpoint='sonarr'
     if [[ ${sonarrURLStatus} == 'ok' ]] && [[ ${sonarrAPIKeyStatus} == 'ok' ]]; then
       sonarrSetupCheck=$(curl -s -L -X GET "${userMBURL}configure/${endpoint}?" \
         -H 'Content-Type: application/x-www-form-urlencoded' \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq .settings)
-      if [ "${sonarrSetupCheck}" != '{}' ]; then
+      if [[ ${sonarrSetupCheck} != '{}' ]]; then
         echo -e "${red}Sonarr appears to be setup already!${endColor}"
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
@@ -1274,7 +1274,7 @@ setup_sonarr() {
         elif [[ ${continuePrompt} =~ ^(no|n)$ ]]; then
           sonarr_menu
         fi
-      elif [ "${sonarrSetupCheck}" = '{}' ]; then
+      elif [[ ${sonarrSetupCheck} == '{}' ]]; then
         :
       fi
     elif [[ ${sonarrURLStatus} == 'invalid' ]] || [[ ${sonarrAPIKeyStatus} == 'invalid' ]]; then
@@ -1289,7 +1289,7 @@ setup_sonarr() {
     sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
     sonarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
     set -e
-    while [ "${sonarrURLStatus}" = 'invalid' ]; do
+    while [[ ${sonarrURLStatus} == 'invalid' ]]; do
       if [[ ${sonarrURLCheckResponse} == '200' ]] && [[ ${sonarrURLAppCheckResponse} == 'Sonarr' ]]; then
         sed -i.bak "${sonarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         sonarrURLStatus='ok'
@@ -1314,14 +1314,14 @@ setup_sonarr() {
     echo ''
     echo 'Testing that the provided Sonarr API Key is valid...'
     sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | jq .[] | tr -d '"')
-    while [ "${sonarrAPIKeyStatus}" = 'invalid' ]; do
-      if [ "${sonarrAPITestResponse}" = 'Unauthorized' ]; then
+    while [[ ${sonarrAPIKeyStatus} == 'invalid' ]]; do
+      if [[ ${sonarrAPITestResponse} == 'Unauthorized' ]]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Sonarr API key:'
         read -rs sonarrAPIKey
         echo ''
         sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | jq .[] | tr -d '"')
-      elif [ "${sonarrAPITestResponse}" != 'Unauthorized' ]; then
+      elif [[ ${sonarrAPITestResponse} != 'Unauthorized' ]]; then
         sed -i.bak "${sonarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         sonarrAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
@@ -1340,7 +1340,7 @@ setup_sonarr() {
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${sonarrAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${sonarrConfigFile}"
     sonarrMBConfigTestResponse=$(jq .message "${sonarrConfigFile}" | tr -d '"')
-    if [ "${sonarrMBConfigTestResponse}" = 'success' ]; then
+    if [[ ${sonarrMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Sonarr config to MediaButler...'
@@ -1350,7 +1350,7 @@ setup_sonarr() {
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${sonarrAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${sonarrConfigFile}"
       sonarrMBConfigPostResponse=$(jq .message "${sonarrConfigFile}" | tr -d '"')
-      if [ "${sonarrMBConfigPostResponse}" = 'success' ]; then
+      if [[ ${sonarrMBConfigPostResponse} == 'success' ]]; then
         echo -e "${grn}Done! Sonarr has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         echo ''
@@ -1358,26 +1358,26 @@ setup_sonarr() {
         sleep 3
         clear >&2
         endpoint_menu
-      elif [ "${sonarrMBConfigPostResponse}" != 'success' ]; then
+      elif [[ ${sonarrMBConfigPostResponse} != 'success' ]]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
         clear >&2
         endpoint_menu
       fi
-    elif [ "${sonarrMBConfigTestResponse}" != 'success' ]; then
+    elif [[ ${sonarrMBConfigTestResponse} != 'success' ]]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
       clear >&2
       endpoint_menu
     fi
-  elif [ "${sonarrMenuSelection}" = '2' ]; then
+  elif [[ ${sonarrMenuSelection} == '2' ]]; then
     endpoint='sonarr4k'
     if [[ ${sonarr4kURLStatus} == 'ok' ]] && [[ ${sonarr4kAPIKeyStatus} == 'ok' ]]; then
       sonarr4kSetupCheck=$(curl -s -L -X GET "${userMBURL}configure/${endpoint}?" \
         -H 'Content-Type: application/x-www-form-urlencoded' \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq .settings)
-      if [ "${sonarr4kSetupCheck}" != '{}' ]; then
+      if [[ ${sonarr4kSetupCheck} != '{}' ]]; then
         echo -e "${red}Sonarr 4K appears to be setup already!${endColor}"
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
@@ -1393,7 +1393,7 @@ setup_sonarr() {
         elif [[ ${continuePrompt} =~ ^(no|n)$ ]]; then
           sonarr_menu
         fi
-      elif [ "${sonarr4kSetupCheck}" = '{}' ]; then
+      elif [[ ${sonarr4kSetupCheck} == '{}' ]]; then
         :
       fi
     elif [[ ${sonarr4kURLStatus} == 'invalid' ]] || [[ ${sonarr4kAPIKeyStatus} == 'invalid' ]]; then
@@ -1408,7 +1408,7 @@ setup_sonarr() {
     sonarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
     sonarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
     set -e
-    while [ "${sonarr4kURLStatus}" = 'invalid' ]; do
+    while [[ ${sonarr4kURLStatus} == 'invalid' ]]; do
       if [[ ${sonarr4kURLCheckResponse} == '200' ]] && [[ ${sonarr4kURLAppCheckResponse} == 'Sonarr' ]]; then
         sed -i.bak "${sonarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         sonarr4kURLStatus='ok'
@@ -1433,14 +1433,14 @@ setup_sonarr() {
     echo ''
     echo 'Testing that the provided Sonarr 4K API Key is valid...'
     sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" | jq .[] | tr -d '"')
-    while [ "${sonarr4kAPIKeyStatus}" = 'invalid' ]; do
-      if [ "${sonarr4kAPITestResponse}" = 'Unauthorized' ]; then
+    while [[ ${sonarr4kAPIKeyStatus} == 'invalid' ]]; do
+      if [[ ${sonarr4kAPITestResponse} == 'Unauthorized' ]]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Sonarr 4K API key:'
         read -rs sonarr4kAPIKey
         echo ''
         sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" | jq .[] | tr -d '"')
-      elif [ "${sonarr4kAPITestResponse}" != 'Unauthorized' ]; then
+      elif [[ ${sonarr4kAPITestResponse} != 'Unauthorized' ]]; then
         sed -i.bak "${sonarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         sonarr4kAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
@@ -1459,7 +1459,7 @@ setup_sonarr() {
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${sonarr4kAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${sonarr4kConfigFile}"
     sonarr4kMBConfigTestResponse=$(jq .message "${sonarr4kConfigFile}" | tr -d '"')
-    if [ "${sonarr4kMBConfigTestResponse}" = 'success' ]; then
+    if [[ ${sonarr4kMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Sonarr 4K config to MediaButler...'
@@ -1469,7 +1469,7 @@ setup_sonarr() {
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${sonarr4kAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${sonarrConfigFile}"
       sonarr4kMBConfigPostResponse=$(jq .message "${sonarr4kConfigFile}" | tr -d '"')
-      if [ "${sonarr4kMBConfigPostResponse}" = 'success' ]; then
+      if [[ ${sonarr4kMBConfigPostResponse} == 'success' ]]; then
         echo -e "${grn}Done! Sonarr 4K has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         echo ''
@@ -1477,13 +1477,13 @@ setup_sonarr() {
         sleep 3
         clear >&2
         endpoint_menu
-      elif [ "${sonarr4kMBConfigPostResponse}" != 'success' ]; then
+      elif [[ ${sonarr4kMBConfigPostResponse} != 'success' ]]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
         clear >&2
         endpoint_menu
       fi
-    elif [ "${sonarr4kMBConfigTestResponse}" != 'success' ]; then
+    elif [[ ${sonarr4kMBConfigTestResponse} != 'success' ]]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
       clear >&2
@@ -1494,14 +1494,14 @@ setup_sonarr() {
 
 # Function to process Radarr configuration
 setup_radarr() {
-  if [ "${radarrMenuSelection}" = '1' ]; then
+  if [[ ${radarrMenuSelection} == '1' ]]; then
     endpoint='radarr'
     if [[ ${radarrURLStatus} == 'ok' ]] && [[ ${radarrAPIKeyStatus} == 'ok' ]]; then
       radarrSetupCheck=$(curl -s -L -X GET "${userMBURL}configure/${endpoint}?" \
         -H 'Content-Type: application/x-www-form-urlencoded' \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq .settings)
-      if [ "${radarrSetupCheck}" != '{}' ]; then
+      if [[ ${radarrSetupCheck} != '{}' ]]; then
         echo -e "${red}Radarr appears to be setup already!${endColor}"
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
@@ -1517,7 +1517,7 @@ setup_radarr() {
         elif [[ ${continuePrompt} =~ ^(no|n)$ ]]; then
           radarr_menu
         fi
-      elif [ "${radarrSetupCheck}" = '{}' ]; then
+      elif [[ ${radarrSetupCheck} == '{}' ]]; then
         :
       fi
     elif [[ ${radarrURLStatus} == 'invalid' ]] || [[ ${radarrAPIKeyStatus} == 'invalid' ]]; then
@@ -1532,7 +1532,7 @@ setup_radarr() {
     radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
     radarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
     set -e
-    while [ "${radarrURLStatus}" = 'invalid' ]; do
+    while [[ ${radarrURLStatus} == 'invalid' ]]; do
       if [[ ${radarrURLCheckResponse} == '200' ]] && [[ ${radarrURLAppCheckResponse} == 'Radarr' ]]; then
         sed -i.bak "${radarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         radarrURLStatus='ok'
@@ -1557,14 +1557,14 @@ setup_radarr() {
     echo ''
     echo 'Testing that the provided Radarr API Key is valid...'
     radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | jq .[] | tr -d '"')
-    while [ "${radarrAPIKeyStatus}" = 'invalid' ]; do
-      if [ "${radarrAPITestResponse}" = 'Unauthorized' ]; then
+    while [[ ${radarrAPIKeyStatus} == 'invalid' ]]; do
+      if [[ ${radarrAPITestResponse} == 'Unauthorized' ]]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Radarr API key:'
         read -rs radarrAPIKey
         echo ''
         radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | jq .[] | tr -d '"')
-      elif [ "${radarrAPITestResponse}" != 'Unauthorized' ]; then
+      elif [[ ${radarrAPITestResponse} != 'Unauthorized' ]]; then
         sed -i.bak "${radarrAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         radarrAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
@@ -1583,7 +1583,7 @@ setup_radarr() {
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${radarrAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarrConfigFile}"
     radarrMBConfigTestResponse=$(jq .message "${radarrConfigFile}" | tr -d '"')
-    if [ "${radarrMBConfigTestResponse}" = 'success' ]; then
+    if [[ ${radarrMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr config to MediaButler...'
@@ -1593,7 +1593,7 @@ setup_radarr() {
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${radarrAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarrConfigFile}"
       radarrMBConfigPostResponse=$(jq .message "${radarrConfigFile}" | tr -d '"')
-      if [ "${radarrMBConfigPostResponse}" = 'success' ]; then
+      if [[ ${radarrMBConfigPostResponse} == 'success' ]]; then
         echo -e "${grn}Done! Radarr has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         echo ''
@@ -1601,26 +1601,26 @@ setup_radarr() {
         sleep 3
         clear >&2
         endpoint_menu
-      elif [ "${radarrMBConfigPostResponse}" != 'success' ]; then
+      elif [[ ${radarrMBConfigPostResponse} != 'success' ]]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
         clear >&2
         endpoint_menu
       fi
-    elif [ "${radarrMBConfigTestResponse}" != 'success' ]; then
+    elif [[ ${radarrMBConfigTestResponse} != 'success' ]]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
       clear >&2
       endpoint_menu
     fi
-  elif [ "${radarrMenuSelection}" = '2' ]; then
+  elif [[ ${radarrMenuSelection} == '2' ]]; then
     endpoint='radarr4k'
     if [[ ${radarr4kURLStatus} == 'ok' ]] && [[ ${radarr4kAPIKeyStatus} == 'ok' ]]; then
       radarr4kSetupCheck=$(curl -s -L -X GET "${userMBURL}configure/${endpoint}?" \
         -H 'Content-Type: application/x-www-form-urlencoded' \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq .settings)
-      if [ "${radarr4kSetupCheck}" != '{}' ]; then
+      if [[ ${radarr4kSetupCheck} != '{}' ]]; then
         echo -e "${red}Radarr 4K appears to be setup already!${endColor}"
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
@@ -1636,7 +1636,7 @@ setup_radarr() {
         elif [[ ${continuePrompt} =~ ^(no|n)$ ]]; then
           radarr4k_menu
         fi
-      elif [ "${radarr4kSetupCheck}" = '{}' ]; then
+      elif [[ ${radarr4kSetupCheck} == '{}' ]]; then
         :
       fi
     elif [[ ${radarr4kURLStatus} == 'invalid' ]] || [[ ${radarr4kAPIKeyStatus} == 'invalid' ]]; then
@@ -1651,7 +1651,7 @@ setup_radarr() {
     radarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
     radarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
     set -e
-    while [ "${radarr4kURLStatus}" = 'invalid' ]; do
+    while [[ ${radarr4kURLStatus} == 'invalid' ]]; do
       if [[ ${radarr4kURLCheckResponse} == '200' ]] && [[ ${radarr4kURLAppCheckResponse} == 'Radarr' ]]; then
         sed -i.bak "${radarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         radarr4kURLStatus='ok'
@@ -1676,14 +1676,14 @@ setup_radarr() {
     echo ''
     echo 'Testing that the provided Radarr 4K API Key is valid...'
     radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | jq .[] | tr -d '"')
-    while [ "${radarr4kAPIKeyStatus}" = 'invalid' ]; do
-      if [ "${radarr4kAPITestResponse}" = 'Unauthorized' ]; then
+    while [[ ${radarr4kAPIKeyStatus} == 'invalid' ]]; do
+      if [[ ${radarr4kAPITestResponse} == 'Unauthorized' ]]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Radarr 4K API key:'
         read -rs radarr4kAPIKey
         echo ''
         radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | jq .[] | tr -d '"')
-      elif [ "${radarr4kAPITestResponse}" != 'Unauthorized' ]; then
+      elif [[ ${radarr4kAPITestResponse} != 'Unauthorized' ]]; then
         sed -i.bak "${radarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         radarr4kAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
@@ -1702,7 +1702,7 @@ setup_radarr() {
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${radarr4kAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarr4kConfigFile}"
     radarr4kMBConfigTestResponse=$(jq .message "${radarr4kConfigFile}" | tr -d '"')
-    if [ "${radarr4kMBConfigTestResponse}" = 'success' ]; then
+    if [[ ${radarr4kMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr 4K config to MediaButler...'
@@ -1712,7 +1712,7 @@ setup_radarr() {
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${radarr4kAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarrConfigFile}"
       radarr4kMBConfigPostResponse=$(q .message "${radarr4kConfigFile}" | tr -d '"')
-      if [ "${radarr4kMBConfigPostResponse}" = 'success' ]; then
+      if [[ ${radarr4kMBConfigPostResponse} == 'success' ]]; then
         echo -e "${grn}Done! Radarr 4K has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         echo ''
@@ -1720,26 +1720,26 @@ setup_radarr() {
         sleep 3
         clear >&2
         endpoint_menu
-      elif [ "${radarr4kMBConfigPostResponse}" != 'success' ]; then
+      elif [[ ${radarr4kMBConfigPostResponse} != 'success' ]]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
         clear >&2
         endpoint_menu
       fi
-    elif [ "${radarr4kMBConfigTestResponse}" != 'success' ]; then
+    elif [[ ${radarr4kMBConfigTestResponse} != 'success' ]]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
       clear >&2
       endpoint_menu
     fi
-  elif [ "${radarrMenuSelection}" = '3' ]; then
+  elif [[ ${radarrMenuSelection} == '3' ]]; then
     endpoint='radarr3d'
     if [[ ${radarr3dURLStatus} == 'ok' ]] && [[ ${radarr3dAPIKeyStatus} == 'ok' ]]; then
       radarr3dSetupCheck=$(curl -s -L -X GET "${userMBURL}configure/${endpoint}?" \
         -H 'Content-Type: application/x-www-form-urlencoded' \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq .settings)
-      if [ "${radarr3dSetupCheck}" != '{}' ]; then
+      if [[ ${radarr3dSetupCheck} != '{}' ]]; then
         echo -e "${red}Radarr 3D appears to be setup already!${endColor}"
         echo -e "${ylw}Do you wish to continue?${endColor}"
         echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
@@ -1755,7 +1755,7 @@ setup_radarr() {
         elif [[ ${continuePrompt} =~ ^(no|n)$ ]]; then
           radarr3d_menu
         fi
-      elif [ "${radarr3dSetupCheck}" = '{}' ]; then
+      elif [[ ${radarr3dSetupCheck} == '{}' ]]; then
         :
       fi
     elif [[ ${radarr3dURLStatus} == 'invalid' ]] || [[ ${radarr3dAPIKeyStatus} == 'invalid' ]]; then
@@ -1770,7 +1770,7 @@ setup_radarr() {
     radarr3dURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
     radarr3dURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
     set -e
-    while [ "${radarr3dURLStatus}" = 'invalid' ]; do
+    while [[ ${radarr3dURLStatus} == 'invalid' ]]; do
       if [[ ${radarr3dURLCheckResponse} == '200' ]] && [[ ${radarr3dURLAppCheckResponse} == 'Radarr' ]]; then
         sed -i.bak "${radarr3dURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         radarr3dURLStatus='ok'
@@ -1796,14 +1796,14 @@ setup_radarr() {
     echo 'Testing that the provided Radarr 3D API Key is valid...'
     echo ''
     radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" | jq .[] | tr -d '"')
-    while [ "${radarr3dAPIKeyStatus}" = 'invalid' ]; do
-      if [ "${radarr3dAPITestResponse}" = 'Unauthorized' ]; then
+    while [[ ${radarr3dAPIKeyStatus} == 'invalid' ]]; do
+      if [[ ${radarr3dAPITestResponse} == 'Unauthorized' ]]; then
         echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
         echo 'Please enter your Radarr 3D API key:'
         read -rs radarr3dAPIKey
         echo ''
         radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" | jq .[] | tr -d '"')
-      elif [ "${radarr3dAPITestResponse}" != 'Unauthorized' ]; then
+      elif [[ ${radarr3dAPITestResponse} != 'Unauthorized' ]]; then
         sed -i.bak "${radarr3dAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
         radarr3dAPIKeyStatus='ok'
         echo -e "${grn}Success!${endColor}"
@@ -1822,7 +1822,7 @@ setup_radarr() {
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${radarr3dAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarr3dConfigFile}"
     radarr3dMBConfigTestResponse=$(jq .message "${radarr3dConfigFile}" | tr -d '"')
-    if [ "${radarr3dMBConfigTestResponse}" = 'success' ]; then
+    if [[ ${radarr3dMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
       echo 'Saving the Radarr 3D config to MediaButler...'
@@ -1832,7 +1832,7 @@ setup_radarr() {
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${radarr3dAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarrConfigFile}"
       radarr3dMBConfigPostResponse=$(jq .message "${radarr3dConfigFile}" | tr -d '"')
-      if [ "${radarr3dMBConfigPostResponse}" = 'success' ]; then
+      if [[ ${radarr3dMBConfigPostResponse} == 'success' ]]; then
         echo -e "${grn}Done! Radarr 3D has been successfully configured for${endColor}"
         echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
         echo ''
@@ -1840,13 +1840,13 @@ setup_radarr() {
         sleep 3
         clear >&2
         endpoint_menu
-      elif [ "${radarr3dMBConfigPostResponse}" != 'success' ]; then
+      elif [[ ${radarr3dMBConfigPostResponse} != 'success' ]]; then
         echo -e "${red}Config push failed! Please try again later.${endColor}"
         sleep 3
         clear >&2
         endpoint_menu
       fi
-    elif [ "${radarr3dMBConfigTestResponse}" != 'success' ]; then
+    elif [[ ${radarr3dMBConfigTestResponse} != 'success' ]]; then
       echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
       sleep 3
       clear >&2
@@ -1863,7 +1863,7 @@ setup_tautulli() {
       -H 'Content-Type: application/x-www-form-urlencoded' \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" | jq .settings)
-    if [ "${tautulliSetupCheck}" != '{}' ]; then
+    if [[ ${tautulliSetupCheck} != '{}' ]]; then
       echo -e "${red}Tautulli appears to be setup already!${endColor}"
       echo -e "${ylw}Do you wish to continue?${endColor}"
       echo -e "${grn}[Y]${endColor}es or ${red}[N]${endColor}o:"
@@ -1879,7 +1879,7 @@ setup_tautulli() {
       elif [[ ${continuePrompt} =~ ^(no|n)$ ]]; then
         endpoint_menu
       fi
-    elif [ "${tautulliSetupCheck}" = '{}' ]; then
+    elif [[ ${tautulliSetupCheck} == '{}' ]]; then
       :
     fi
   elif [[ ${tautulliURLStatus} == 'invalid' ]] || [[ ${tautulliAPIKeyStatus} == 'invalid' ]]; then
@@ -1894,7 +1894,7 @@ setup_tautulli() {
   tautulliURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
   tautulliURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}"auth/login?redirect_uri=/tautulli/ | grep '<title>' | awk '{print $1}' | cut -c8-)
   set -e
-  while [ "${tautulliURLStatus}" = 'invalid' ]; do
+  while [[ ${tautulliURLStatus} == 'invalid' ]]; do
     if [[ ${tautulliURLCheckResponse} == '200' ]] && [[ ${tautulliURLAppCheckResponse} == 'Tautulli' ]]; then
       sed -i.bak "${tautulliURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
       tautulliURLStatus='ok'
@@ -1919,13 +1919,13 @@ setup_tautulli() {
   echo ''
   echo 'Testing that the provided Tautulli API Key is valid...'
   tautulliAPITestResponse=$(curl -s "${convertedURL}api/v2?apikey=${tautulliAPIKey}&cmd=arnold" | jq .response.message | tr -d '"')
-  while [ "${tautulliAPIKeyStatus}" = 'invalid' ]; do
-    if [ "${tautulliAPITestResponse}" = 'null' ]; then
+  while [[ ${tautulliAPIKeyStatus} == 'invalid' ]]; do
+    if [[ ${tautulliAPITestResponse} == 'null' ]]; then
       sed -i.bak "${tautulliAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
       tautulliAPIKeyStatus='ok'
       echo -e "${grn}Success!${endColor}"
       echo ''
-    elif [ "${tautulliAPITestResponse}" = 'Invalid apikey' ]; then
+    elif [[ ${tautulliAPITestResponse} == 'Invalid apikey' ]]; then
       echo -e "${red}There was an error while attempting to validate the provided API key!${endColor}"
       echo 'Please enter your Tautulli API key:'
       read -rs tautulliAPIKey
@@ -1940,7 +1940,7 @@ setup_tautulli() {
     -H "Authorization: Bearer ${plexServerMBToken}" \
     --data "url=${JSONConvertedURL}&apikey=${tautulliAPIKey}" | jq . > "${tautulliConfigFile}"
   tautulliMBConfigTestResponse=$(jq .message "${tautulliConfigFile}" | tr -d '"')
-  if [ "${tautulliMBConfigTestResponse}" = 'success' ]; then
+  if [[ ${tautulliMBConfigTestResponse} == 'success' ]]; then
     echo -e "${grn}Success!${endColor}"
     echo ''
     echo 'Saving the Tautulli config to MediaButler...'
@@ -1950,7 +1950,7 @@ setup_tautulli() {
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${tautulliAPIKey}" | jq . > "${tautulliConfigFile}"
     tautulliMBConfigPostResponse=$(jq .message "${tautulliConfigFile}" | tr -d '"')
-    if [ "${tautulliMBConfigPostResponse}" = 'success' ]; then
+    if [[ ${tautulliMBConfigPostResponse} == 'success' ]]; then
       echo -e "${grn}Done! Tautulli has been successfully configured for${endColor}"
       echo -e "${grn}MediaButler with the ${selectedPlexServerName} Plex server.${endColor}"
       echo ''
@@ -1958,13 +1958,13 @@ setup_tautulli() {
       sleep 3
       clear >&2
       endpoint_menu
-    elif [ "${tautulliMBConfigPostResponse}" != 'success' ]; then
+    elif [[ ${tautulliMBConfigPostResponse} != 'success' ]]; then
       echo -e "${red}Config push failed! Please try again later.${endColor}"
       sleep 3
       clear >&2
       endpoint_menu
     fi
-  elif [ "${tautulliMBConfigTestResponse}" != 'success' ]; then
+  elif [[ ${tautulliMBConfigTestResponse} != 'success' ]]; then
     echo -e "${red}Hmm, something weird happened. Please try again.${endColor}"
     sleep 3
     clear >&2
@@ -1984,7 +1984,7 @@ now_playing() {
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq .data.sessions["${stream}"] > "${nowPlayingRawFile}"
       mediaType=$(jq .media_type "${nowPlayingRawFile}" | tr -d '"')
-      if [ "$mediaType" = 'movie' ]; then
+      if [[ ${mediaType} == 'movie' ]]; then
         status=$(jq .state "${nowPlayingRawFile}" | tr -d '"')
         playbackStatus=$(echo "${status^}")
         username=$(jq .username "${nowPlayingRawFile}" | tr -d '"')
@@ -2008,7 +2008,7 @@ now_playing() {
         echo -e "${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
         echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
         cat "${nowPlayingDataFile}"
-      elif [ "$mediaType" = 'episode' ]; then
+      elif [[ ${mediaType} == 'episode' ]]; then
         playbackStatus=$(jq .state "${nowPlayingRawFile}" | tr -d '"')
         username=$(jq .username "${nowPlayingRawFile}" | tr -d '"')
         ipAddress=$(jq .ip_address "${nowPlayingRawFile}" | tr -d '"')
@@ -2035,7 +2035,7 @@ now_playing() {
         echo -e "${org}Session Key:${endColor} ${sessionKey}" >> "${nowPlayingDataFile}"
         echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
         cat "${nowPlayingDataFile}"
-      elif [ "$mediaType" = 'track' ]; then
+      elif [[ ${mediaType} == 'track' ]]; then
         playbackStatus=$(jq .state "${nowPlayingRawFile}" | tr -d '"')
         username=$(jq .username "${nowPlayingRawFile}" | tr -d '"')
         ipAddress=$(jq .ip_address "${nowPlayingRawFile}" | tr -d '"')
@@ -2086,7 +2086,7 @@ playback_history() {
     column -ts- "${durationDataFile}" >> "${historyDataFile}"
     for item in $(seq 0 $((numberOfHistoryItems - 1))); do
       mediaType=$(jq .response.data.data["${item}"].media_type "${historyRawFile}" | tr -d '"')
-      if [ "$mediaType" = 'movie' ]; then
+      if [[ ${mediaType} == 'movie' ]]; then
         platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" | tr -d '"')
         device=$(jq .response.data.data["${item}"].player "${historyRawFile}" | tr -d '"')
         title=$(jq .response.data.data["${item}"].full_title "${historyRawFile}" | tr -d '"')
@@ -2100,7 +2100,7 @@ playback_history() {
         friendlyDuration=$(echo "[$((duration / 60))m $((duration % 60))s]")
         echo -e "${bold}${playing}${endColor}" >> "${historyDataFile}"
         echo -e "${playbackType} - ${platform} - ${device} ${friendlyDuration}" >> "${historyDataFile}"
-      elif [ "$mediaType" = 'episode' ]; then
+      elif [[ ${mediaType} == 'episode' ]]; then
         platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" | tr -d '"')
         device=$(jq .response.data.data["${item}"].player "${historyRawFile}" | tr -d '"')
         parentTitle=$(jq .response.data.data["${item}"].parent_media_index "${historyRawFile}")
@@ -2117,7 +2117,7 @@ playback_history() {
         friendlyDuration=$(echo "[$((duration / 60))m $((duration % 60))s]")
         echo -e "${bold}${playing}${endColor}" >> "${historyDataFile}"
         echo -e "${playbackType} - ${platform} - ${device} ${friendlyDuration}" >> "${historyDataFile}"
-      elif [ "$mediaType" = 'track' ]; then
+      elif [[ ${mediaType} == 'track' ]]; then
         platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" | tr -d '"')
         device=$(jq .response.data.data["${item}"].player "${historyRawFile}" | tr -d '"')
         playing=$(jq .response.data.data["${item}"].full_title "${historyRawFile}" | tr -d '"')
@@ -2178,7 +2178,7 @@ prompt_for_request_selection() {
     echo -e "${red}You didn't not specify a valid option!${endColor}"
     echo ''
     submit_request_menu
-  elif [ "${requestsResultsSelection}" = "${cancelOption}" ]; then
+  elif [[ ${requestsResultsSelection} == "${cancelOption}" ]]; then
     echo ''
     submit_request_menu
   else
@@ -2190,13 +2190,13 @@ prompt_for_request_selection() {
 # Function to submit media request
 submit_requests() {
   endpoint='requests'
-  if [ "${requestType}" = 'tv' ]; then
+  if [[ ${requestType} == 'tv' ]]; then
     mediaDatabase='tvdbId'
     echo 'Please enter the name of the TV Show you would like to request:'
-  elif [ "${requestType}" = 'movie' ]; then
+  elif [[ ${requestType} == 'movie' ]]; then
     mediaDatabase='imdbId'
     echo 'Please enter the name of the Movie you would like to request:'
-  elif [ "${requestType}" = 'music' ]; then
+  elif [[ ${requestType} == 'music' ]]; then
     mediaDatabase='unknown'
     echo 'Please enter the name of the Artist you would like to request:'
   fi
@@ -2206,10 +2206,10 @@ submit_requests() {
   queryRequestStatusCode=$(curl -s -o "${requestResultsRawFile}" -w "%{http_code}" -L -X GET "${userMBURL}${requestType}?query=${convertedSearchString}" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}")
-  if [ "${queryRequestStatusCode}" = '200' ]; then
+  if [[ ${queryRequestStatusCode} == '200' ]]; then
     create_request_results_list
     prompt_for_request_selection
-  elif [ "${queryRequestStatusCode}" = '500' ]; then
+  elif [[ ${queryRequestStatusCode} == '500' ]]; then
     echo -e "${red}Your search yielded no results!${endColor}"
     echo ''
     submit_request_menu
@@ -2224,17 +2224,17 @@ submit_requests() {
     --data-urlencode "type=${requestType}" \
     --data-urlencode "title=${selectedRequestsResult}" \
     --data-urlencode "${mediaDatabase}=${mediaID}")
-  if [ "${submitRequestStatusCode}" = '200' ]; then
+  if [[ ${submitRequestStatusCode} == '200' ]]; then
     echo -e "${grn}Success! ${mediaTitle} has been requested.${endColor}"
     echo ''
     requests_menu
-  elif [ "${submitRequestStatusCode}" = '500' ]; then
+  elif [[ ${submitRequestStatusCode} == '500' ]]; then
     submitRequestResponse=$(jq .message "${submitRequestResultFile}" | tr -d '"')
-    if [ "${submitRequestResponse}" = 'Item Exists' ]; then
+    if [[ ${submitRequestResponse} == 'Item Exists' ]]; then
       echo -e "${red}${mediaTitle} already exists on Plex!${endColor}"
       echo ''
       requests_menu
-    elif [ "${submitRequestResponse}" = 'Request already exists' ]; then
+    elif [[ ${submitRequestResponse} == 'Request already exists' ]]; then
       echo -e "${red}${mediaTitle} has already been requested!${endColor}"
       echo ''
       requests_menu
@@ -2269,7 +2269,7 @@ prompt_for_request_to_manage() {
     echo -e "${red}You didn't not specify a valid option!${endColor}"
     echo ''
     manage_requests
-  elif [ "${manageRequestSelection}" = "${cancelOption}" ]; then
+  elif [[ ${manageRequestSelection} == "${cancelOption}" ]]; then
     requests_menu
   else
     manageRequestArrayElement=$((manageRequestSelection - 1))
@@ -2290,13 +2290,13 @@ manage_requests() {
   create_existing_requests_list
   prompt_for_request_to_manage
   requestStatusCode=$(jq .["${manageRequestArrayElement}"].status "${currentRequestsRawFile}")
-  if [ "${requestStatusCode}" = '0' ]; then
+  if [[ ${requestStatusCode} == '0' ]]; then
     requestStatus="${red}Pending${endColor}"
-  elif [ "${requestStatusCode}" = '1' ]; then
+  elif [[ ${requestStatusCode} == '1' ]]; then
     requestStatus="${lorg}Downloading${endColor}"
-  elif [ "${requestStatusCode}" = '2' ]; then
+  elif [[ ${requestStatusCode} == '2' ]]; then
     requestStatus="${ylw}Partially Filled${endColor}"
-  elif [ "${requestStatusCode}" = '3' ]; then
+  elif [[ ${requestStatusCode} == '3' ]]; then
     requestStatus="${grn}Filled${endColor}"
   fi
   echo -e "${bold}Request information:${endColor}"
@@ -2317,35 +2317,35 @@ manage_requests() {
     echo -e "${red}You did not specify a valid option!${endColor}"
     echo ''
     manage_requests
-  elif [ "${manageRequestOption}" = '1' ]; then
+  elif [[ ${manageRequestOption} == '1' ]]; then
     approveRequestStatusCode=$(curl -s -o "${approveRequestResponseFile}" -w "%{http_code}" -L -X POST "${userMBURL}${endpoint}/${selectedRequestID}" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}")
-    if [ "${approveRequestStatusCode}" = '200' ]; then
+    if [[ ${approveRequestStatusCode} == '200' ]]; then
       echo -e "${grn}Request has been successfully approved!${endColor}"
       echo ''
       manage_requests
-    elif [ "${approveRequestStatusCode}" = '400' ]; then
+    elif [[ ${approveRequestStatusCode} == '400' ]]; then
       echo -e "${red}There was an error while trying to approve the request!${endColor}"
       echo ''
       manage_requests
     fi
-  elif [ "${manageRequestOption}" = '2' ]; then
+  elif [[ ${manageRequestOption} == '2' ]]; then
     denyRequestStatusCode=$(curl -s -o "${denyRequestResponseFile}" -w "%{http_code}" -L -X DELETE "${userMBURL}${endpoint}/${selectedRequestID}" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}")
-    if [ "${denyRequestStatusCode}" = '200' ]; then
+    if [[ ${denyRequestStatusCode} == '200' ]]; then
       echo -e "${grn}Request has been successfully removed!${endColor}"
       echo ''
       manage_requests
-    elif [ "${denyRequestStatusCode}" = '500' ]; then
+    elif [[ ${denyRequestStatusCode} == '500' ]]; then
       echo -e "${red}There was an error while trying to delete the request!${endColor}"
       echo ''
       manage_requests
     fi
-  elif [ "${manageRequestOption}" = '3' ]; then
+  elif [[ ${manageRequestOption} == '3' ]]; then
     manage_requests
   fi
 }
@@ -2550,7 +2550,7 @@ configure_request_limits() {
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "limitDays=${limitCycle}&limitAmount=${limitAmount}" | jq .message | tr -d '"')
-    if [ "${requestLimitCheckResponse}" = 'success' ]; then
+    if [[ ${requestLimitCheckResponse} == 'success' ]]; then
       echo 'Saving the new request limits to MediaButler...'
       curl -s -L -X POST "${userMBURL}configure/${endpoint}" \
         -H "${mbClientID}" \
@@ -2560,7 +2560,7 @@ configure_request_limits() {
       sleep 3
       clear >&2
       endpoint_menu
-    elif [ "${requestLimitCheckResponse}" != 'success' ]; then
+    elif [[ ${requestLimitCheckResponse} != 'success' ]]; then
       echo -e "${red}There was an issue saving the new request limits!${endColor}"
       echo -e "${ylw}Please try again later.${endColor}"
       sleep 3
@@ -2600,7 +2600,7 @@ prompt_for_mb_user() {
     echo -e "${red}You didn't not specify a valid option!${endColor}"
     echo ''
     endpoint_menu
-  elif [ "${userSelection}" = "${cancelOption}" ]; then
+  elif [[ ${userSelection} == "${cancelOption}" ]]; then
     echo ''
     endpoint_menu
   else
@@ -2652,14 +2652,14 @@ create_numbered_user_possible_perms_list() {
 
 # Function to create list of the user's new MediaButler permissions
 create_user_new_perms_list() {
-  if [ "${permsMenuSelection}" = '1' ]; then
+  if [[ ${permsMenuSelection} == '1' ]]; then
     echo "${selectedPerm}" >> "${userPermsListFile}"
     cat "${userPermsListFile}" > "${userNewPermsListFile}"
-  elif [ "${permsMenuSelection}" = '2' ]; then
+  elif [[ ${permsMenuSelection} == '2' ]]; then
     set +e
     grep -v "${selectedPerm}" "${userPermsListFile}" > "${userNewPermsListFile}"
     set -e
-  elif [ "${permsMenuSelection}" = '3' ]; then
+  elif [[ ${permsMenuSelection} == '3' ]]; then
     true > "${userNewPermsListFile}"
   fi
 }
@@ -2674,7 +2674,7 @@ create_user_new_perms_json() {
 
 # Function to modify user permissions
 configure_perms() {
-  if [ "${permsMenuSelection}" = '1' ]; then
+  if [[ ${permsMenuSelection} == '1' ]]; then
     if [[ ! -s ${userPossiblePermsListFile} ]]; then
       echo -e "${red}Selected user already has all available permissions!${endColor}"
       echo ''
@@ -2694,7 +2694,7 @@ configure_perms() {
         echo -e "${red}You didn't not specify a valid option!${endColor}"
         echo ''
         permissions_menu
-      elif [ "${permSelection}" = "${cancelOption}" ]; then
+      elif [[ ${permSelection} == "${cancelOption}" ]]; then
         echo ''
         permissions_menu
       else
@@ -2711,7 +2711,7 @@ configure_perms() {
         permissions_menu
       fi
     fi
-  elif [ "${permsMenuSelection}" = '2' ]; then
+  elif [[ ${permsMenuSelection} == '2' ]]; then
     if [[ ! -s ${userPermsListFile} ]]; then
       echo -e "${red}Selected user doesn't have any permissions to remove!${endColor}"
       echo ''
@@ -2731,7 +2731,7 @@ configure_perms() {
         echo -e "${red}You didn't not specify a valid option!${endColor}"
         echo ''
         permissions_menu
-      elif [ "${permSelection}" = "${cancelOption}" ]; then
+      elif [[ ${permSelection} == "${cancelOption}" ]]; then
         echo ''
         permissions_menu
       else
@@ -2748,7 +2748,7 @@ configure_perms() {
         permissions_menu
       fi
     fi
-  elif [ "${permsMenuSelection}" = '3' ]; then
+  elif [[ ${permsMenuSelection} == '3' ]]; then
     echo -e "${red}**WARNING!!!** This will reset ALL permissions for the user ${endColor}${ylw}${selectedUser}${endColor}${red}!${endColor}"
     echo -e "${ylw}Do you wish to continue?${endColor}"
     echo ''
