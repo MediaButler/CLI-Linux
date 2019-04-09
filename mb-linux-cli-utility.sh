@@ -435,42 +435,55 @@ check_plex_creds() {
   while [[ ${plexCredsStatus} == 'invalid' ]]; do
     echo "Now we're going to make sure you provided valid credentials..."
     if [[ ${plexCredsOption} == '1' ]]; then
-      curl -s -L -X POST "${mbLoginURL}" \
+      plexCredsCheckResponse=$(curl -s -L -w "%{http_code}" -o "${plexCredsFile}" -X POST "${mbLoginURL}" \
         -H "${mbClientID}" \
-        --data "username=${plexUsername}&password=${plexPassword}" | jq . > "${plexCredsFile}"
+        --data "username=${plexUsername}&password=${plexPassword}" | jq .)
       authResponse=$(jq .name "${plexCredsFile}" | tr -d '"')
-      if [[ ${authResponse} =~ 'BadRequest' ]]; then
-        echo -e "${red}The credentials that you provided are not valid!${endColor}"
-        echo ''
-        echo 'Please enter your Plex username:'
-        read -r plexUsername
-        echo ''
-        echo 'Please enter your Plex password:'
-        read -rs plexPassword
-        echo ''
-      elif [[ ${authResponse} != *'BadRequest'* ]]; then
-        sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
-        plexCredsStatus='ok'
-        echo -e "${grn}Success!${endColor}"
-        echo ''
+      if [[ ${plexCredsCheckResponse} == '200' ]]; then
+        if [[ ${authResponse} =~ 'BadRequest' ]]; then
+          echo -e "${red}The credentials that you provided are not valid!${endColor}"
+          echo ''
+          echo 'Please enter your Plex username:'
+          read -r plexUsername
+          echo ''
+          echo 'Please enter your Plex password:'
+          read -rs plexPassword
+          echo ''
+        elif [[ ${authResponse} != *'BadRequest'* ]]; then
+          sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
+          plexCredsStatus='ok'
+          echo -e "${grn}Success!${endColor}"
+          echo ''
+        fi
+      elif [[ ${plexCredsCheckResponse} != '200' ]]; then
+        echo -e "${red}Something when wrong while attempting to authenticate with the MediaButler auth server!${endColor}"
+        echo -e "${ylw}Please try again later.${endColor}"
+        reset_plex
+        exit 0
       fi
     elif [[ ${plexCredsOption} == '2' ]]; then
-      curl -s -L -X POST "${mbLoginURL}" \
+      plexCredsCheckResponse=$(curl -s -L -w "%{http_code}" -o "${plexCredsFile}" -X POST "${mbLoginURL}" \
         -H "${mbClientID}" \
-        -H "Content-Type: application/x-www-form-urlencoded" \
-        --data "authToken=${plexToken}" | jq . > "${plexCredsFile}"
+        --data "authToken=${plexToken}" | jq .)
       authResponse=$(jq .name "${plexCredsFile}" | tr -d '"')
-      if [[ ${authResponse} =~ 'BadRequest' ]]; then
-        echo -e "${red}The credentials that you provided are not valid!${endColor}"
-        echo ''
-        echo 'Please enter your Plex token:'
-        read -rs plexToken
-        echo ''
-      elif [[ ${authResponse} != *'BadRequest'* ]]; then
-        sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
-        plexCredsStatus='ok'
-        echo -e "${grn}Success!${endColor}"
-        echo ''
+      if [[ ${plexCredsCheckResponse} == '200' ]]; then
+        if [[ ${authResponse} =~ 'BadRequest' ]]; then
+          echo -e "${red}The credentials that you provided are not valid!${endColor}"
+          echo ''
+          echo 'Please enter your Plex token:'
+          read -rs plexToken
+          echo ''
+        elif [[ ${authResponse} != *'BadRequest'* ]]; then
+          sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
+          plexCredsStatus='ok'
+          echo -e "${grn}Success!${endColor}"
+          echo ''
+        fi
+      elif [[ ${plexCredsCheckResponse} != '200' ]]; then
+        echo -e "${red}Something when wrong while attempting to authenticate with the MediaButler auth server!${endColor}"
+        echo -e "${ylw}Please try again later.${endColor}"
+        reset_plex
+        exit 0
       fi
     fi
   done
