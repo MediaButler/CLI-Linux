@@ -2903,6 +2903,7 @@ main() {
     userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" | jq .value | tr -d '"')
     isAdmin=$(jq '.data[] | select(.name=="isAdmin")' "${jsonEnvFile}" | jq .value | tr -d '"')
   elif [[ ! -f ${jsonEnvFile} ]]; then
+    reset_plex
     get_plex_creds
     check_plex_creds
   fi
