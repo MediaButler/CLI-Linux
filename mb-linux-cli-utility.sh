@@ -1368,31 +1368,6 @@ setup_sonarr() {
     read -r providedURL
     convert_url
     echo ''
-    #echo 'Checking that the provided Sonarr URL is valid...'
-    #set +e
-    #sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #sonarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #set -e
-    #while [[ ${sonarrURLStatus} == 'invalid' ]]; do
-    #  if [[ ${sonarrURLCheckResponse} == '200' ]] && [[ ${sonarrURLAppCheckResponse} == 'Sonarr' ]]; then
-    #    sed -i.bak "${sonarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
-    #    sonarrURLStatus='ok'
-    #    echo -e "${grn}Success!${endColor}"
-    #    echo ''
-    #  elif [[ ${sonarrURLCheckResponse} != '200' ]] || [[ ${sonarrURLAppCheckResponse} != 'Sonarr' ]]; then
-    #    echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
-    #    echo 'Please enter your Sonarr URL (IE: http://127.0.0.1:8989/sonarr/):'
-    #    read -r providedURL
-    #    echo ''
-    #    echo 'Checking that the provided Sonarr URL is valid...'
-    #    echo ''
-    #    convert_url
-    #    set +e
-    #    sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #    sonarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #    set -e
-    #  fi
-    #done
     echo 'Please enter your Sonarr API key:'
     read -rs sonarrAPIKey
     echo ''
@@ -1506,32 +1481,7 @@ setup_sonarr() {
     echo 'Please enter your Sonarr 4K URL (IE: http://127.0.0.1:8989/sonarr/):'
     read -r providedURL
     echo ''
-    #echo 'Checking that the provided Sonarr 4K URL is valid...'
     convert_url
-    #set +e
-    #sonarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #sonarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #set -e
-    #while [[ ${sonarr4kURLStatus} == 'invalid' ]]; do
-    #  if [[ ${sonarr4kURLCheckResponse} == '200' ]] && [[ ${sonarr4kURLAppCheckResponse} == 'Sonarr 4K' ]]; then
-    #    sed -i.bak "${sonarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
-    #    sonarr4kURLStatus='ok'
-    #    echo -e "${grn}Success!${endColor}"
-    #    echo ''
-    #  elif [[ ${sonarr4kURLCheckResponse} != '200' ]] || [[ ${sonarr4kURLAppCheckResponse} != 'Sonarr 4K' ]]; then
-    #    echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
-    #    echo 'Please enter your Sonarr 4K URL (IE: http://127.0.0.1:8989/radarr/):'
-    #    read -r providedURL
-    #    echo ''
-    #    echo 'Checking that the provided Sonarr 4K URL is valid...'
-    #    echo ''
-    #    convert_url
-    #    set +e
-    #    sonarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #    sonarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #    set -e
-    #  fi
-    #done
     echo 'Please enter your Sonarr 4K API key:'
     read -rs sonarr4kAPIKey
     echo ''
@@ -1650,32 +1600,7 @@ setup_radarr() {
     echo 'Please enter your Radarr URL (IE: http://127.0.0.1:7878/radarr/):'
     read -r providedURL
     echo ''
-    #echo 'Checking that the provided Radarr URL is valid...'
     convert_url
-    #set +e
-    #radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #radarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #set -e
-    #while [[ ${radarrURLStatus} == 'invalid' ]]; do
-    #  if [[ ${radarrURLCheckResponse} == '200' ]] && [[ ${radarrURLAppCheckResponse} == 'Radarr' ]]; then
-    #    sed -i.bak "${radarrURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
-    #    radarrURLStatus='ok'
-    #    echo -e "${grn}Success!${endColor}"
-    #    echo ''
-    #  elif [[ ${radarrURLCheckResponse} != '200' ]] || [[ ${radarrURLAppCheckResponse} != 'Radarr' ]]; then
-    #    echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
-    #    echo 'Please enter your Radarr URL (IE: http://127.0.0.1:7878/radarr/):'
-    #    read -r providedURL
-    #    echo ''
-    #    echo 'Checking that the provided Radarr URL is valid...'
-    #    echo ''
-    #    convert_url
-    #    set +e
-    #    radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #    radarrURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #    set -e
-    #  fi
-    #done
     echo 'Please enter your Radarr API key:'
     read -rs radarrAPIKey
     echo ''
@@ -1789,32 +1714,7 @@ setup_radarr() {
     echo 'Please enter your Radarr 4K URL (IE: http://127.0.0.1:7878/radarr/):'
     read -r providedURL
     echo ''
-    #echo 'Checking that the provided Radarr URL is valid...'
     convert_url
-    #set +e
-    #radarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #radarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #set -e
-    #while [[ ${radarr4kURLStatus} == 'invalid' ]]; do
-    #  if [[ ${radarr4kURLCheckResponse} == '200' ]] && [[ ${radarr4kURLAppCheckResponse} == 'Radarr' ]]; then
-    #    sed -i.bak "${radarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
-    #    radarr4kURLStatus='ok'
-    #    echo -e "${grn}Success!${endColor}"
-    #    echo ''
-    #  elif [[ ${radarr4kURLCheckResponse} != '200' ]] || [[ ${radarr4kURLAppCheckResponse} != 'Radarr' ]]; then
-    #    echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
-    #    echo 'Please enter your Radarr URL (IE: http://127.0.0.1:8989/radarr/):'
-    #    read -r providedURL
-    #    echo ''
-    #    echo 'Checking that the provided Radarr URL is valid...'
-    #    echo ''
-    #    convert_url
-    #    set +e
-    #    radarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #    radarr4kURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #    set -e
-    #  fi
-    #done
     echo 'Please enter your Radarr 4K API key:'
     read -rs radarr4kAPIKey
     echo ''
@@ -1925,32 +1825,10 @@ setup_radarr() {
     elif [[ ${radarr3dURLStatus} == 'invalid' ]] || [[ ${radarr3dAPIKeyStatus} == 'invalid' ]]; then
       :
     fi
-    #echo 'Checking that the provided Radarr 3D URL is valid...'
+    echo 'Please enter your Radarr 4K URL (IE: http://127.0.0.1:7878/radarr/):'
+    read -r providedURL
+    echo ''
     convert_url
-    #set +e
-    #radarr3dURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #radarr3dURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #set -e
-    #while [[ ${radarr3dURLStatus} == 'invalid' ]]; do
-    #  if [[ ${radarr3dURLCheckResponse} == '200' ]] && [[ ${radarr3dURLAppCheckResponse} == 'Radarr' ]]; then
-    #    sed -i.bak "${radarr3dURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
-    #    radarr3dURLStatus='ok'
-    #    echo -e "${grn}Success!${endColor}"
-    #    echo ''
-    #  elif [[ ${radarr3dURLCheckResponse} != '200' ]] || [[ ${radarr3dURLAppCheckResponse} != 'Radarr' ]]; then
-    #    echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
-    #    echo 'Please enter your Radarr URL (IE: http://127.0.0.1:8989/radarr/):'
-    #    read -r providedURL
-    #    echo ''
-    #    echo 'Checking that the provided Radarr 3D URL is valid...'
-    #    echo ''
-    #    convert_url
-    #    set +e
-    #    radarr3dURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    #    radarr3dURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}" | grep '<title>' | awk '{print $1}' | cut -c8-13)
-    #    set -e
-    #  fi
-    #done
     echo 'Please enter your Radarr 3D API key:'
     read -rs radarr3dAPIKey
     echo ''
@@ -2068,32 +1946,7 @@ setup_tautulli() {
   echo 'Please enter your Tautulli URL (IE: http://127.0.0.1:8181/tautulli/):'
   read -r providedURL
   echo ''
-  #echo 'Checking that the provided Tautulli URL is valid...'
   convert_url
-  #set +e
-  #tautulliURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
-  #tautulliURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}"auth/login?redirect_uri=/tautulli/ | grep '<title>' | awk '{print $1}' | cut -c8-)
-  #set -e
-  #while [[ ${tautulliURLStatus} == 'invalid' ]]; do
-  #  if [[ ${tautulliURLCheckResponse} == '200' ]] && [[ ${tautulliURLAppCheckResponse} == 'Tautulli' ]]; then
-  #    sed -i.bak "${tautulliURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
-  #    tautulliURLStatus='ok'
-  #    echo -e "${grn}Success!${endColor}"
-  #    echo ''
-  #  elif [[ ${tautulliURLCheckResponse} != '200' ]] || [[ ${tautulliURLAppCheckResponse} == 'Tautulli' ]]; then
-  #    echo -e "${red}There was an error while attempting to validate the provided URL!${endColor}"
-  #    echo 'Please enter your Tautulli URL (IE: http://127.0.0.1:8181/tautulli/):'
-  #    read -r providedURL
-  #    echo ''
-  #    echo 'Checking that the provided Tautulli URL is valid...'
-  #    echo ''
-  #    convert_url
-  #    set +e
-  #    tautulliURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}"auth/login)
-  #    tautulliURLAppCheckResponse=$(curl -s --connect-timeout 10 "${convertedURL}"auth/login?redirect_uri=/tautulli/ | grep '<title>' | awk '{print $1}' | cut -c8-)
-  #    set -e
-  #  fi
-  #done
   echo 'Please enter your Tautulli API key:'
   read -rs tautulliAPIKey
   echo ''
