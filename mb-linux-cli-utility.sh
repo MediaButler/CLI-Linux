@@ -1741,7 +1741,7 @@ setup_radarr() {
         radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | grep -i startup | grep -ci radarr)
         radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | grep -c version)
         set -e
-      elif [[ ${radarr4kURLCheckResponse} == '200' ]] && [[ ${radarr4kAppCheckResponse} -ge 1 ]] && [[ ${radarr4kAPITestResponse} -ge  1 ]]; then
+      elif [[ ${radarr4kURLCheckResponse} == '200' ]] && [[ ${radarr4kAppCheckResponse} -ge 1 ]] && [[ ${radarr4kAPITestResponse} -ge 1 ]]; then
         sed -i.bak "${radarr4kURLStatusLineNum} s/${endpoint}URLStatus='[^']*'/${endpoint}URLStatus='ok'/" "${scriptname}"
         radarr4kURLStatus='ok'
         sed -i.bak "${radarr4kAPIKeyStatusLineNum} s/${endpoint}APIKeyStatus='[^']*'/${endpoint}APIKeyStatus='ok'/" "${scriptname}"
