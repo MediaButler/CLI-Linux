@@ -456,7 +456,7 @@ check_plex_creds() {
           echo ''
         fi
       elif [[ ${plexCredsCheckResponse} != '200' ]]; then
-        echo -e "${red}Something when wrong while attempting to authenticate with the MediaButler auth server!${endColor}"
+        echo -e "${red}Something went wrong while attempting to authenticate with the MediaButler auth server!${endColor}"
         echo -e "${ylw}Please try again later.${endColor}"
         reset_plex
         exit 0
@@ -480,7 +480,7 @@ check_plex_creds() {
           echo ''
         fi
       elif [[ ${plexCredsCheckResponse} != '200' ]]; then
-        echo -e "${red}Something when wrong while attempting to authenticate with the MediaButler auth server!${endColor}"
+        echo -e "${red}Something went wrong while attempting to authenticate with the MediaButler auth server!${endColor}"
         echo -e "${ylw}Please try again later.${endColor}"
         reset_plex
         exit 0
