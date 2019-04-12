@@ -47,7 +47,7 @@ A command line tool to enable usage of the [MediaButler Server](https://github.c
 
 You can also run the client inside a docker environment by running
 
-    docker run -it mediabutler/cli-linux
+    docker run --rm -it mediabutler/cli-linux
 
 
 ## Support
