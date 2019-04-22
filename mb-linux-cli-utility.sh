@@ -183,7 +183,7 @@ package_manager() {
   osInfo[/etc/arch-release]=pacman
   osInfo[/etc/gentoo-release]=emerge
   osInfo[/etc/SuSE-release]=zypp
-  osInfo[/etc/debian_version]='apt -y -qq'
+  osInfo[/etc/debian_version]='apt update && apt -y -qq'
   osInfo[/etc/alpine-release]='apk'
   osInfo[/System/Library/CoreServices/SystemVersion.plist]='mac'
 
