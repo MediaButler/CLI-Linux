@@ -183,7 +183,7 @@ package_manager() {
   osInfo[/etc/arch-release]=pacman
   osInfo[/etc/gentoo-release]=emerge
   osInfo[/etc/SuSE-release]=zypp
-  osInfo[/etc/debian_version]='add-apt-repository universe && apt -qqq update && apt -y -qqq'
+  osInfo[/etc/debian_version]='apt -qqq update && apt -y -qqq'
   osInfo[/etc/alpine-release]='apk'
   osInfo[/System/Library/CoreServices/SystemVersion.plist]='mac'
 
@@ -1374,7 +1374,7 @@ setup_sonarr() {
     echo 'Testing that the provided Sonarr URL and API Key are valid...'
     set +e
     sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}")
-    sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -ci sonarr)
+    sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
     sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -c version)
     set -e
     while [[ ${sonarrAPIKeyStatus} == 'invalid' ]] || [[ ${sonarrURLStatus} == 'invalid' ]]; do
@@ -1391,7 +1391,7 @@ setup_sonarr() {
         echo 'Testing that the provided Sonarr URL and API Key are valid...'
         set +e
         sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}")
-        sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -ci sonarr)
+        sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
         sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -c version)
         set -e
       elif [[ ${sonarrURLCheckResponse} == '200' ]] && [[ ${sonarrAppCheckResponse} -ge 1 ]] && [[ ${sonarrAPITestResponse} -ge 1 ]]; then
