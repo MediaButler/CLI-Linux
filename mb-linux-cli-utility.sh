@@ -560,6 +560,15 @@ prompt_for_plex_server() {
     -H "${mbClientID}" \
     -H "MB-Plex-Token: ${plexToken}" \
     -H "MB-Machine-Identifier: ${plexServerMachineID}")
+  if [[ ${userMBURL: -1} == '/' ]]; then
+    convertedURL=$(echo "${userMBURL}")
+  elif [[ ${userMBURL: -1} != '/' ]]; then
+    convertedURL=$(
+      providedURL+=\/
+      echo "${providedURL}"
+    )
+  fi
+  userMBURL=$(echo "${convertedURL}")
   if [[ ${userMBURL} =~ 'Error' ]] || [[ ${userMBURL} == '' ]]; then
     echo -e "${red}Unable to automatically retrieve your MediaButler URL!${endColor}"
     echo -e "${ylw}This is typically indicative of port 9876 not being forwarded.${endColor}"
