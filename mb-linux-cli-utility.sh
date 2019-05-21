@@ -2,7 +2,7 @@
 #
 # Script to work with MediaButler.
 # Assists in configuration and allows you to perform most tasks.
-# Tronyx
+# Tronyx (Chris Yocum)
 
 # Set parameters
 set -eo pipefail
