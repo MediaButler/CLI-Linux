@@ -2,7 +2,7 @@
 #
 # Script to work with MediaButler.
 # Assists in configuration and allows you to perform most tasks.
-# Tronyx (Chris Yocum)
+# Tronyx
 
 # Set parameters
 set -eo pipefail
@@ -560,15 +560,6 @@ prompt_for_plex_server() {
     -H "${mbClientID}" \
     -H "MB-Plex-Token: ${plexToken}" \
     -H "MB-Machine-Identifier: ${plexServerMachineID}")
-  if [[ ${userMBURL: -1} == '/' ]]; then
-    convertedURL=$(echo "${userMBURL}")
-  elif [[ ${userMBURL: -1} != '/' ]]; then
-    convertedURL=$(
-      providedURL+=\/
-      echo "${providedURL}"
-    )
-  fi
-  userMBURL=$(echo "${convertedURL}")
   if [[ ${userMBURL} =~ 'Error' ]] || [[ ${userMBURL} == '' ]]; then
     echo -e "${red}Unable to automatically retrieve your MediaButler URL!${endColor}"
     echo -e "${ylw}This is typically indicative of port 9876 not being forwarded.${endColor}"
@@ -850,7 +841,11 @@ main_menu() {
   elif [[ ${mainMenuSelection} == '5' ]]; then
     playback_menu
   elif [[ ${mainMenuSelection} == '6' ]]; then
-    library_menu
+    #library_menu
+    echo -e "${red}This menu is not live yet!${endColor}"
+    sleep 3
+    clear >&2
+    main_menu
   elif [[ ${mainMenuSelection} == '7' ]]; then
     search_menu
   elif [[ ${mainMenuSelection} == '8' ]]; then
