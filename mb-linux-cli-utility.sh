@@ -9,8 +9,8 @@ set -eo pipefail
 IFS=$'\n\t'
 
 # Define variables
-mbLoginURL='https://auth.mediabutler.io/login'
-mbDiscoverURL='https://auth.mediabutler.io/login/discover'
+mbLoginURL='https://auth.mediabutler.app/login'
+mbDiscoverURL='https://auth.mediabutler.app/login/discover'
 mbClientID='MB-Client-Identifier: 4d656446-fbe7-4545-b754-1adfb8eb554e'
 mbClientIDShort='4d656446-fbe7-4545-b754-1adfb8eb554e'
 # Set initial Plex credentials status
