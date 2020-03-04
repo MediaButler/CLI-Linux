@@ -749,12 +749,12 @@ check_endpoint_configs() {
 
 # Function to create environment variables file for persistence
 create_env_file() {
-  echo "plexToken	${plexToken}" > "${envFile}"
-  echo "serverName	${selectedPlexServerName}" >> "${envFile}"
-  echo "mbToken	${plexServerMBToken}" >> "${envFile}"
-  echo "machineId	${plexServerMachineID}" >> "${envFile}"
-  echo "mbURL	${userMBURL}" >> "${envFile}"
-  echo "admin	${isAdmin}" >> "${envFile}"
+  echo "plexToken       ${plexToken}" > "${envFile}"
+  echo "serverName      ${selectedPlexServerName}" >> "${envFile}"
+  echo "mbToken         ${plexServerMBToken}" >> "${envFile}"
+  echo "machineId       ${plexServerMachineID}" >> "${envFile}"
+  echo "mbURL           ${userMBURL}" >> "${envFile}"
+  echo "admin           ${isAdmin}" >> "${envFile}"
   jq '. | split("\n") | map( split("\t") | {name: .[0], value: .[1]} ) | {data: .} ' -R -s "${envFile}" > "${jsonEnvFile}"
 }
 
