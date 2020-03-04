@@ -36,11 +36,10 @@ A command line tool to enable usage of the [MediaButler Server](https://github.c
 
  ## Installing and Using
 
- The simplest method would be to either download the file manually or clone this git repository, marking the file as executable, and running it.
+ The simplest method would be to either download the file manually or clone this git repository and running it:
 
      git clone https://github.com/MediaButler/CLI-Linux.git
      cd CLI-Linux
-     chmod +x mb-linux-cli-utility.sh
      ./mb-linux-cli-utility.sh
 
 ## Docker
