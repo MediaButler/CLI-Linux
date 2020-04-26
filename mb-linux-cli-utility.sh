@@ -1378,7 +1378,8 @@ setup_sonarr() {
     echo 'Testing that the provided Sonarr URL and API Key are valid...'
     set +e
     sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}")
-    sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
+    #sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
+    sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${sonarrAPIKey}" | jq .[].name | grep -cEi 'sonarr')
     sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -c version)
     set -e
     while [[ ${sonarrAPIKeyStatus} == 'invalid' ]] || [[ ${sonarrURLStatus} == 'invalid' ]]; do
@@ -1395,7 +1396,8 @@ setup_sonarr() {
         echo 'Testing that the provided Sonarr URL and API Key are valid...'
         set +e
         sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}")
-        sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
+        #sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
+        sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${sonarrAPIKey}" | jq .[].name | grep -cEi 'sonarr')
         sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -c version)
         set -e
       elif [[ ${sonarrURLCheckResponse} == '200' ]] && [[ ${sonarrAppCheckResponse} -ge 1 ]] && [[ ${sonarrAPITestResponse} -ge 1 ]]; then
@@ -1611,7 +1613,8 @@ setup_radarr() {
     echo 'Testing that the provided Radarr URL and API Key are valid...'
     set +e
     radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}")
-    radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+    #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+    radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | jq .[].name | grep -ci radarr)
     radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -c version)
     set -e
     while [[ ${radarrAPIKeyStatus} == 'invalid' ]] || [[ ${radarrURLStatus} == 'invalid' ]]; do
@@ -1628,7 +1631,8 @@ setup_radarr() {
         echo 'Testing that the provided Radarr URL and API Key are valid...'
         set +e
         radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}")
-        radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+        #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+        radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | jq .[].name | grep -ci radarr)
         radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -c version)
         set -e
       elif [[ ${radarrURLCheckResponse} == '200' ]] && [[ ${radarrAppCheckResponse} -ge 1 ]] && [[ ${radarrAPITestResponse} -ge 1 ]]; then
