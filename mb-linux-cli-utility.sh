@@ -438,7 +438,7 @@ check_plex_creds() {
       plexCredsCheckResponse=$(curl -s -L -w "%{http_code}" -o "${plexCredsFile}" -X POST "${mbLoginURL}" \
         -H "${mbClientID}" \
         --data "username=${plexUsername}&password=${plexPassword}" | jq .)
-      authResponse=$(jq .name "${plexCredsFile}" | tr -d '"')
+      authResponse=$(jq -r .name "${plexCredsFile}")
       if [[ ${plexCredsCheckResponse} == '200' ]]; then
         if [[ ${authResponse} =~ 'BadRequest' ]]; then
           echo -e "${red}The credentials that you provided are not valid!${endColor}"
@@ -465,7 +465,7 @@ check_plex_creds() {
       plexCredsCheckResponse=$(curl -s -L -w "%{http_code}" -o "${plexCredsFile}" -X POST "${mbLoginURL}" \
         -H "${mbClientID}" \
         --data "authToken=${plexToken}" | jq .)
-      authResponse=$(jq .name "${plexCredsFile}" | tr -d '"')
+      authResponse=$(jq -r .name "${plexCredsFile}")
       if [[ ${plexCredsCheckResponse} == '200' ]]; then
         if [[ ${authResponse} =~ 'BadRequest' ]]; then
           echo -e "${red}The credentials that you provided are not valid!${endColor}"
@@ -499,7 +499,7 @@ get_plex_token() {
       -H "X-Plex-Client-Identifier: ${mbClientIDShort}" \
       -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
       --data-urlencode "user[password]=${plexPassword}" \
-      --data-urlencode "user[login]=${plexUsername}" | jq .user.authToken | tr -d '"')
+      --data-urlencode "user[login]=${plexUsername}" | jq -r .user.authToken)
     echo "${plexToken}" > "${plexTokenFile}"
   elif [[ ${plexCredsOption} == '2' ]]; then
     echo "${plexToken}" > "${plexTokenFile}"
@@ -511,8 +511,8 @@ get_plex_token() {
 # Function to create list of Plex servers the user owns
 create_plex_servers_list() {
   endpoint='plex'
-  jq '.servers[] | select(.owner==true)' "${plexCredsFile}" | jq .name | tr -d '"' > "${plexServersOwnerFile}"
-  jq '.servers[] | select(.owner!=true)' "${plexCredsFile}" | jq .name | tr -d '"' > "${plexServersFriendsFile}"
+  jq '.servers[] | select(.owner==true)' "${plexCredsFile}" | jq -r .name > "${plexServersOwnerFile}"
+  jq '.servers[] | select(.owner!=true)' "${plexCredsFile}" | jq -r .name > "${plexServersFriendsFile}"
   true > "${plexServersFile}"
   for server in $(cat "${plexServersOwnerFile}"); do
     echo "${server} (Owner)" >> "${plexServersFile}"
@@ -553,14 +553,14 @@ prompt_for_plex_server() {
   echo ''
   echo 'Gathering required information...'
   plexServerArrayElement=$((plexServerSelection - 1))
-  selectedPlexServerName=$(jq .servers["${plexServerArrayElement}"].name "${plexCredsFile}" | tr -d '"')
-  plexServerMachineID=$(jq .servers["${plexServerArrayElement}"].machineId "${plexCredsFile}" | tr -d '"')
+  selectedPlexServerName=$(jq -r .servers["${plexServerArrayElement}"].name "${plexCredsFile}")
+  plexServerMachineID=$(jq -r .servers["${plexServerArrayElement}"].machineId "${plexCredsFile}")
   userMBURL=$(curl --connect-timeout 10 -m 15 -s -L -X GET "${mbDiscoverURL}" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "${mbClientID}" \
     -H "MB-Plex-Token: ${plexToken}" \
-    -H "MB-Machine-Identifier: ${plexServerMachineID}")
-  if [[ ${userMBURL} =~ 'Error' ]] || [[ ${userMBURL} == '' ]]; then
+    -H "MB-Machine-Identifier: ${plexServerMachineID}") || userMBURL=''
+  if [[ ${userMBURL} =~ 'Error' ]] || [[ -z ${userMBURL} ]]; then
     echo -e "${red}Unable to automatically retrieve your MediaButler URL!${endColor}"
     echo -e "${ylw}This is typically indicative of port 9876 not being forwarded.${endColor}"
     echo -e "${ylw}Please check your port forwarding and then try again.${endColor}"
@@ -569,7 +569,7 @@ prompt_for_plex_server() {
   elif [[ ${userMBURL} != *'Error'* ]]; then
     :
   fi
-  plexServerMBToken=$(jq .servers["${plexServerArrayElement}"].token "${plexCredsFile}" | tr -d '"')
+  plexServerMBToken=$(jq -r .servers["${plexServerArrayElement}"].token "${plexCredsFile}")
   echo -e "${grn}Done!${endColor}"
   echo ''
   echo 'Is this the correct MediaButler URL?'
@@ -593,9 +593,9 @@ prompt_for_plex_server() {
     convert_url
     set +e
     mbURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-    userMBApiVersionOne=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq .apiVersion | tr -d '"' | awk -F '.' '{print $1}')
-    userMBApiVersionTwo=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq .apiVersion | tr -d '"' | awk -F '.' '{print $2}')
-    userMBApiVersionThree=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq .apiVersion | tr -d '"' | awk -F '.' '{print $3}')
+    userMBApiVersionOne=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq -r .apiVersion | awk -F '.' '{print $1}')
+    userMBApiVersionTwo=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq -r .apiVersion | awk -F '.' '{print $2}')
+    userMBApiVersionThree=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq -r .apiVersion | awk -F '.' '{print $3}')
     set -e
     if [[ ${userMBApiVersionOne} -gt '1' ]] || [[ ${userMBApiVersionTwo} -gt '1' ]] || [[ ${userMBApiVersionThree} -ge '12' ]]; then
       mbAPIStatus='ok'
@@ -619,9 +619,9 @@ prompt_for_plex_server() {
         convert_url
         set +e
         mbURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}")
-        userMBApiVersionOne=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq .apiVersion | tr -d '"' | awk -F '.' '{print $1}')
-        userMBApiVersionTwo=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq .apiVersion | tr -d '"' | awk -F '.' '{print $2}')
-        userMBApiVersionThree=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq .apiVersion | tr -d '"' | awk -F '.' '{print $3}')
+        userMBApiVersionOne=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq -r .apiVersion | awk -F '.' '{print $1}')
+        userMBApiVersionTwo=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq -r .apiVersion | awk -F '.' '{print $2}')
+        userMBApiVersionThree=$(curl -s --connect-timeout 10 "${convertedURL}"version | jq -r .apiVersion | awk -F '.' '{print $3}')
         set -e
         if [[ ${userMBApiVersionOne} -gt '1' ]] || [[ ${userMBApiVersionTwo} -gt '1' ]] || [[ ${userMBApiVersionThree} -ge '12' ]]; then
           mbAPIStatus='ok'
@@ -683,7 +683,7 @@ check_endpoint_configs() {
   curl -s --connect-timeout 10 -m 15 -L -X GET "${userMBURL}version/" \
     -H 'Content-Type: application/x-www-form-urlencoded' \
     -H "${mbClientID}" \
-    -H "Authorization: Bearer ${plexServerMBToken}" | jq .endpoints[] | tr -d '"' | grep -E 'arr|taut' > "${endpointsListFile}"
+    -H "Authorization: Bearer ${plexServerMBToken}" | jq -r .endpoints[] | grep -E 'arr|taut' > "${endpointsListFile}"
   availableEndpoints=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'availableEndpoints=($(cat "${endpointsListFile}"))'
   for endpoint in "${availableEndpoints[@]}"; do
@@ -749,12 +749,12 @@ check_endpoint_configs() {
 
 # Function to create environment variables file for persistence
 create_env_file() {
-  echo "plexToken	${plexToken}" > "${envFile}"
-  echo "serverName	${selectedPlexServerName}" >> "${envFile}"
-  echo "mbToken	${plexServerMBToken}" >> "${envFile}"
-  echo "machineId	${plexServerMachineID}" >> "${envFile}"
-  echo "mbURL	${userMBURL}" >> "${envFile}"
-  echo "admin	${isAdmin}" >> "${envFile}"
+  echo "plexToken       ${plexToken}" > "${envFile}"
+  echo "serverName      ${selectedPlexServerName}" >> "${envFile}"
+  echo "mbToken         ${plexServerMBToken}" >> "${envFile}"
+  echo "machineId       ${plexServerMachineID}" >> "${envFile}"
+  echo "mbURL           ${userMBURL}" >> "${envFile}"
+  echo "admin           ${isAdmin}" >> "${envFile}"
   jq '. | split("\n") | map( split("\t") | {name: .[0], value: .[1]} ) | {data: .} ' -R -s "${envFile}" > "${jsonEnvFile}"
 }
 
@@ -1208,7 +1208,7 @@ permissions_menu() {
 
 # Function to create list of Sonarr/Radarr profiles
 create_arr_profiles_list() {
-  jq .[].name "${rawArrProfilesFile}" | tr -d '"' > "${arrProfilesFile}"
+  jq -r .[].name "${rawArrProfilesFile}" > "${arrProfilesFile}"
   arrProfiles=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'arrProfiles=($(cat "${arrProfilesFile}"))'
   for ((i = 0; i < ${#arrProfiles[@]}; ++i)); do
@@ -1267,13 +1267,13 @@ prompt_for_arr_profile() {
     fi
   else
     arrProfilesArrayElement=$((arrProfilesSelection - 1))
-    selectedArrProfile=$(jq .["${arrProfilesArrayElement}"].name "${rawArrProfilesFile}" | tr -d '"')
+    selectedArrProfile=$(jq -r .["${arrProfilesArrayElement}"].name "${rawArrProfilesFile}")
   fi
 }
 
 # Function to create list of Sonarr/Radarr root directories
 create_arr_root_dirs_list() {
-  jq .[].path "${rawArrRootDirsFile}" | tr -d '"' > "${arrRootDirsFile}"
+  jq -r .[].path "${rawArrRootDirsFile}" > "${arrRootDirsFile}"
   arrRootDirs=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'arrRootDirs=($(cat "${arrRootDirsFile}"))'
   for ((i = 0; i < ${#arrRootDirs[@]}; ++i)); do
@@ -1332,7 +1332,7 @@ prompt_for_arr_root_dir() {
     fi
   else
     arrRootDirsArrayElement=$((arrRootDirsSelection - 1))
-    selectedArrRootDir=$(jq .["${arrRootDirsArrayElement}"].path "${rawArrRootDirsFile}" | tr -d '"')
+    selectedArrRootDir=$(jq -r .["${arrRootDirsArrayElement}"].path "${rawArrRootDirsFile}")
   fi
 }
 
@@ -1378,7 +1378,8 @@ setup_sonarr() {
     echo 'Testing that the provided Sonarr URL and API Key are valid...'
     set +e
     sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}")
-    sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
+    #sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
+    sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${sonarrAPIKey}" | jq .[].name | grep -cEi 'sonarr')
     sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -c version)
     set -e
     while [[ ${sonarrAPIKeyStatus} == 'invalid' ]] || [[ ${sonarrURLStatus} == 'invalid' ]]; do
@@ -1395,7 +1396,8 @@ setup_sonarr() {
         echo 'Testing that the provided Sonarr URL and API Key are valid...'
         set +e
         sonarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}")
-        sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
+        #sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -i startup | grep -cEi 'sonarr|nzbdrone')
+        sonarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${sonarrAPIKey}" | jq .[].name | grep -cEi 'sonarr')
         sonarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarrAPIKey}" | grep -c version)
         set -e
       elif [[ ${sonarrURLCheckResponse} == '200' ]] && [[ ${sonarrAppCheckResponse} -ge 1 ]] && [[ ${sonarrAPITestResponse} -ge 1 ]]; then
@@ -1418,7 +1420,7 @@ setup_sonarr() {
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${sonarrAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${sonarrConfigFile}"
-    sonarrMBConfigTestResponse=$(jq .message "${sonarrConfigFile}" | tr -d '"')
+    sonarrMBConfigTestResponse=$(jq -r .message "${sonarrConfigFile}")
     if [[ ${sonarrMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
@@ -1428,7 +1430,7 @@ setup_sonarr() {
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${sonarrAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${sonarrConfigFile}"
-      sonarrMBConfigPostResponse=$(jq .message "${sonarrConfigFile}" | tr -d '"')
+      sonarrMBConfigPostResponse=$(jq -r .message "${sonarrConfigFile}")
       if [[ ${sonarrMBConfigPostResponse} == 'success' ]]; then
         sonarrEndpointConfigured='true'
         echo -e "${grn}Done! Sonarr has been successfully configured for${endColor}"
@@ -1492,7 +1494,8 @@ setup_sonarr() {
     echo 'Testing that the provided Sonarr 4K URL and API Key are valid...'
     set +e
     sonarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}")
-    sonarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" | grep -i startup | grep -ci radarr)
+    #sonarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" | jq .startupPath | grep -ci sonarr)
+    sonarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${sonarr4kAPIKey}" | jq .[].name | grep -cEi 'sonarr')
     sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" | grep -c version)
     set -e
     while [[ ${sonarr4kAPIKeyStatus} == 'invalid' ]] || [[ ${sonarr4kURLStatus} == 'invalid' ]]; do
@@ -1509,7 +1512,8 @@ setup_sonarr() {
         echo 'Testing that the provided Sonarr 4K URL and API Key are valid...'
         set +e
         sonarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}")
-        sonarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" | jq .startupPath | grep -ci radarr)
+        #sonarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" | jq .startupPath | grep -ci sonarr)
+        sonarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${sonarr4kAPIKey}" | jq .[].name | grep -cEi 'sonarr')
         sonarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${sonarr4kAPIKey}" | grep -c version)
         set -e
       elif [[ ${sonarr4kURLCheckResponse} == '200' ]] && [[ ${sonarr4kAppCheckResponse} -ge 1 ]] && [[ ${sonarr4kAPITestResponse} -ge 1 ]]; then
@@ -1532,7 +1536,7 @@ setup_sonarr() {
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${sonarr4kAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${sonarr4kConfigFile}"
-    sonarr4kMBConfigTestResponse=$(jq .message "${sonarr4kConfigFile}" | tr -d '"')
+    sonarr4kMBConfigTestResponse=$(jq -r .message "${sonarr4kConfigFile}")
     if [[ ${sonarr4kMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
@@ -1542,7 +1546,7 @@ setup_sonarr() {
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${sonarr4kAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${sonarrConfigFile}"
-      sonarr4kMBConfigPostResponse=$(jq .message "${sonarr4kConfigFile}" | tr -d '"')
+      sonarr4kMBConfigPostResponse=$(jq -r .message "${sonarr4kConfigFile}")
       if [[ ${sonarr4kMBConfigPostResponse} == 'success' ]]; then
         sonarr4kEndpointConfigured='true'
         echo -e "${grn}Done! Sonarr 4K has been successfully configured for${endColor}"
@@ -1611,7 +1615,8 @@ setup_radarr() {
     echo 'Testing that the provided Radarr URL and API Key are valid...'
     set +e
     radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}")
-    radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+    #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+    radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | jq .[].name | grep -ci radarr)
     radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -c version)
     set -e
     while [[ ${radarrAPIKeyStatus} == 'invalid' ]] || [[ ${radarrURLStatus} == 'invalid' ]]; do
@@ -1628,7 +1633,8 @@ setup_radarr() {
         echo 'Testing that the provided Radarr URL and API Key are valid...'
         set +e
         radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}")
-        radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+        #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+        radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | jq .[].name | grep -ci radarr)
         radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -c version)
         set -e
       elif [[ ${radarrURLCheckResponse} == '200' ]] && [[ ${radarrAppCheckResponse} -ge 1 ]] && [[ ${radarrAPITestResponse} -ge 1 ]]; then
@@ -1651,7 +1657,7 @@ setup_radarr() {
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${radarrAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarrConfigFile}"
-    radarrMBConfigTestResponse=$(jq .message "${radarrConfigFile}" | tr -d '"')
+    radarrMBConfigTestResponse=$(jq -r .message "${radarrConfigFile}")
     if [[ ${radarrMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
@@ -1661,7 +1667,7 @@ setup_radarr() {
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${radarrAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarrConfigFile}"
-      radarrMBConfigPostResponse=$(jq .message "${radarrConfigFile}" | tr -d '"')
+      radarrMBConfigPostResponse=$(jq -r .message "${radarrConfigFile}")
       if [[ ${radarrMBConfigPostResponse} == 'success' ]]; then
         radarrEndpointConfigured='true'
         echo -e "${grn}Done! Radarr has been successfully configured for${endColor}"
@@ -1725,7 +1731,8 @@ setup_radarr() {
     echo 'Testing that the provided Radarr 4K URL and API Key are valid...'
     set +e
     radarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}")
-    radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | grep -i startup | grep -ci radarr)
+    #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+    radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | jq .[].name | grep -ci radarr)
     radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | grep -c version)
     set -e
     while [[ ${radarr4kAPIKeyStatus} == 'invalid' ]] || [[ ${radarr4kURLStatus} == 'invalid' ]]; do
@@ -1742,7 +1749,8 @@ setup_radarr() {
         echo 'Testing that the provided Radarr 4K URL and API Key are valid...'
         set +e
         radarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}")
-        radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | grep -i startup | grep -ci radarr)
+        #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
+        radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | jq .[].name | grep -ci radarr)
         radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | grep -c version)
         set -e
       elif [[ ${radarr4kURLCheckResponse} == '200' ]] && [[ ${radarr4kAppCheckResponse} -ge 1 ]] && [[ ${radarr4kAPITestResponse} -ge 1 ]]; then
@@ -1765,7 +1773,7 @@ setup_radarr() {
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${radarr4kAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarr4kConfigFile}"
-    radarr4kMBConfigTestResponse=$(jq .message "${radarr4kConfigFile}" | tr -d '"')
+    radarr4kMBConfigTestResponse=$(jq -r .message "${radarr4kConfigFile}")
     if [[ ${radarr4kMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
@@ -1775,7 +1783,7 @@ setup_radarr() {
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${radarr4kAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarrConfigFile}"
-      radarr4kMBConfigPostResponse=$(q .message "${radarr4kConfigFile}" | tr -d '"')
+      radarr4kMBConfigPostResponse=$(jq -r .message "${radarr4kConfigFile}")
       if [[ ${radarr4kMBConfigPostResponse} == 'success' ]]; then
         radarr4kEndpointConfigured='true'
         echo -e "${grn}Done! Radarr 4K has been successfully configured for${endColor}"
@@ -1879,7 +1887,7 @@ setup_radarr() {
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${radarr3dAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarr3dConfigFile}"
-    radarr3dMBConfigTestResponse=$(jq .message "${radarr3dConfigFile}" | tr -d '"')
+    radarr3dMBConfigTestResponse=$(jq -r .message "${radarr3dConfigFile}")
     if [[ ${radarr3dMBConfigTestResponse} == 'success' ]]; then
       echo -e "${grn}Success!${endColor}"
       echo ''
@@ -1889,7 +1897,7 @@ setup_radarr() {
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" \
         --data "url=${JSONConvertedURL}&apikey=${radarr3dAPIKey}&defaultProfile=${selectedArrProfile}&defaultRoot=${selectedArrRootDir}" | jq . > "${radarrConfigFile}"
-      radarr3dMBConfigPostResponse=$(jq .message "${radarr3dConfigFile}" | tr -d '"')
+      radarr3dMBConfigPostResponse=$(jq -r .message "${radarr3dConfigFile}")
       if [[ ${radarr3dMBConfigPostResponse} == 'success' ]]; then
         radarr3dEndpointConfigured='true'
         echo -e "${grn}Done! Radarr 3D has been successfully configured for${endColor}"
@@ -1991,7 +1999,7 @@ setup_tautulli() {
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" \
     --data "url=${JSONConvertedURL}&apikey=${tautulliAPIKey}" | jq . > "${tautulliConfigFile}"
-  tautulliMBConfigTestResponse=$(jq .message "${tautulliConfigFile}" | tr -d '"')
+  tautulliMBConfigTestResponse=$(jq -r .message "${tautulliConfigFile}")
   if [[ ${tautulliMBConfigTestResponse} == 'success' ]]; then
     echo -e "${grn}Success!${endColor}"
     echo ''
@@ -2001,7 +2009,7 @@ setup_tautulli() {
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
       --data "url=${JSONConvertedURL}&apikey=${tautulliAPIKey}" | jq . > "${tautulliConfigFile}"
-    tautulliMBConfigPostResponse=$(jq .message "${tautulliConfigFile}" | tr -d '"')
+    tautulliMBConfigPostResponse=$(jq -r .message "${tautulliConfigFile}")
     if [[ ${tautulliMBConfigPostResponse} == 'success' ]]; then
       tautulliEndpointConfigured='true'
       echo -e "${grn}Done! Tautulli has been successfully configured for${endColor}"
@@ -2042,20 +2050,20 @@ now_playing() {
         curl -s -L -X GET "${userMBURL}${endpoint}/activity" \
           -H "${mbClientID}" \
           -H "Authorization: Bearer ${plexServerMBToken}" | jq .data.sessions["${stream}"] > "${nowPlayingRawFile}"
-        mediaType=$(jq .media_type "${nowPlayingRawFile}" | tr -d '"')
+        mediaType=$(jq -r .media_type "${nowPlayingRawFile}")
         if [[ ${mediaType} == 'movie' ]]; then
-          status=$(jq .state "${nowPlayingRawFile}" | tr -d '"')
+          status=$(jq -r .state "${nowPlayingRawFile}")
           playbackStatus=$(echo "${status^}")
-          username=$(jq .username "${nowPlayingRawFile}" | tr -d '"')
-          ipAddress=$(jq .ip_address "${nowPlayingRawFile}" | tr -d '"')
-          device=$(jq .player "${nowPlayingRawFile}" | tr -d '"')
-          title=$(jq .title "${nowPlayingRawFile}" | tr -d '"')
-          titleYear=$(jq .year "${nowPlayingRawFile}" | tr -d '"')
+          username=$(jq -r .username "${nowPlayingRawFile}")
+          ipAddress=$(jq -r .ip_address "${nowPlayingRawFile}")
+          device=$(jq -r .player "${nowPlayingRawFile}")
+          title=$(jq -r .title "${nowPlayingRawFile}")
+          titleYear=$(jq -r .year "${nowPlayingRawFile}")
           playing=$(echo "${title} (${titleYear})")
-          transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" | tr -d '"')
+          transcodeDecision=$(jq -r .transcode_decision "${nowPlayingRawFile}")
           playbackType=$(echo "${transcodeDecision}" | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
-          profile=$(jq .quality_profile "${nowPlayingRawFile}" | tr -d '"')
-          sessionKey=$(jq .session_key "${nowPlayingRawFile}" | tr -d '"')
+          profile=$(jq -r .quality_profile "${nowPlayingRawFile}")
+          sessionKey=$(jq -r .session_key "${nowPlayingRawFile}")
           echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
           echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
           echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
@@ -2068,21 +2076,21 @@ now_playing() {
           echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
           cat "${nowPlayingDataFile}"
         elif [[ ${mediaType} == 'episode' ]]; then
-          playbackStatus=$(jq .state "${nowPlayingRawFile}" | tr -d '"')
-          username=$(jq .username "${nowPlayingRawFile}" | tr -d '"')
-          ipAddress=$(jq .ip_address "${nowPlayingRawFile}" | tr -d '"')
-          device=$(jq .player "${nowPlayingRawFile}" | tr -d '"')
-          showName=$(jq .grandparent_title "${nowPlayingRawFile}" | tr -d '"')
-          parentTitle=$(jq .parent_media_index "${nowPlayingRawFile}")
+          playbackStatus=$(jq -r .state "${nowPlayingRawFile}")
+          username=$(jq -r .username "${nowPlayingRawFile}")
+          ipAddress=$(jq -r .ip_address "${nowPlayingRawFile}")
+          device=$(jq -r .player "${nowPlayingRawFile}")
+          showName=$(jq -r .grandparent_title "${nowPlayingRawFile}")
+          parentTitle=$(jq -r .parent_media_index "${nowPlayingRawFile}")
           seasonNum=$(printf "%02d" ${parentTitle})
-          mediaIndex=$(jq .media_index "${nowPlayingRawFile}" | tr -d '"')
+          mediaIndex=$(jq -r .media_index "${nowPlayingRawFile}")
           episodeNum=$(printf "%02d" ${mediaIndex})
-          title=$(jq .title "${nowPlayingRawFile}" | tr -d '"')
+          title=$(jq -r .title "${nowPlayingRawFile}")
           playing=$(echo "${showName} - S${seasonNum}E${episodeNum} - ${title}")
-          transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" | tr -d '"')
+          transcodeDecision=$(jq -r .transcode_decision "${nowPlayingRawFile}")
           playbackType=$(echo "${transcodeDecision}" | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
-          profile=$(jq .quality_profile "${nowPlayingRawFile}" | tr -d '"')
-          sessionKey=$(jq .session_key "${nowPlayingRawFile}" | tr -d '"')
+          profile=$(jq -r .quality_profile "${nowPlayingRawFile}")
+          sessionKey=$(jq -r .session_key "${nowPlayingRawFile}")
           echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
           echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
           echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
@@ -2095,18 +2103,18 @@ now_playing() {
           echo -e "${lblu}============================================================${endColor}" >> "${nowPlayingDataFile}"
           cat "${nowPlayingDataFile}"
         elif [[ ${mediaType} == 'track' ]]; then
-          playbackStatus=$(jq .state "${nowPlayingRawFile}" | tr -d '"')
-          username=$(jq .username "${nowPlayingRawFile}" | tr -d '"')
-          ipAddress=$(jq .ip_address "${nowPlayingRawFile}" | tr -d '"')
-          device=$(jq .player "${nowPlayingRawFile}" | tr -d '"')
-          artistName=$(jq .grandparent_title "${nowPlayingRawFile}" | tr -d '"')
-          albumName=$(jq .parent_title "${nowPlayingRawFile}" | tr -d '"')
-          trackName=$(jq .title "${nowPlayingRawFile}" | tr -d '"')
+          playbackStatus=$(jq -r .state "${nowPlayingRawFile}")
+          username=$(jq -r .username "${nowPlayingRawFile}")
+          ipAddress=$(jq -r .ip_address "${nowPlayingRawFile}")
+          device=$(jq -r .player "${nowPlayingRawFile}")
+          artistName=$(jq -r .grandparent_title "${nowPlayingRawFile}")
+          albumName=$(jq -r .parent_title "${nowPlayingRawFile}")
+          trackName=$(jq -r .title "${nowPlayingRawFile}")
           playing=$(echo "${artistName} - ${albumName} - ${trackName}")
-          transcodeDecision=$(jq .transcode_decision "${nowPlayingRawFile}" | tr -d '"')
+          transcodeDecision=$(jq -r .transcode_decision "${nowPlayingRawFile}")
           playbackType=$(echo "${transcodeDecision}" | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
-          profile=$(jq .quality_profile "${nowPlayingRawFile}" | tr -d '"')
-          sessionKey=$(jq .session_key "${nowPlayingRawFile}" | tr -d '"')
+          profile=$(jq -r .quality_profile "${nowPlayingRawFile}")
+          sessionKey=$(jq -r .session_key "${nowPlayingRawFile}")
           echo -e "${lblu}============================================================${endColor}" > "${nowPlayingDataFile}"
           echo -e "${org}Playback:${endColor} ${playbackStatus^}" >> "${nowPlayingDataFile}"
           echo -e "${org}User:${endColor} ${username}" >> "${nowPlayingDataFile}"
@@ -2143,52 +2151,52 @@ playback_history() {
     numberOfHistoryItems=$(jq .response.data.data[].title "${historyRawFile}" | wc -l)
     echo -e "${lblu}============================================================${endColor}" > "${historyDataFile}"
     if [[ ${numberOfHistoryItems} -gt '0' ]]; then
-      totalDuration=$(jq .response.data.total_duration "${historyRawFile}" | tr -d '"')
-      shownDuration=$(jq .response.data.filter_duration "${historyRawFile}" | tr -d '"')
+      totalDuration=$(jq -r .response.data.total_duration "${historyRawFile}")
+      shownDuration=$(jq -r .response.data.filter_duration "${historyRawFile}")
       echo -e "${bold}Total Duration - Shown Duration${endColor}" > "${durationDataFile}"
       echo -e "${grn}${totalDuration} - ${shownDuration}${endColor}" >> "${durationDataFile}"
       column -ts- "${durationDataFile}" >> "${historyDataFile}"
       for item in $(seq 0 $((numberOfHistoryItems - 1))); do
-        mediaType=$(jq .response.data.data["${item}"].media_type "${historyRawFile}" | tr -d '"')
+        mediaType=$(jq -r .response.data.data["${item}"].media_type "${historyRawFile}")
         if [[ ${mediaType} == 'movie' ]]; then
-          platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" | tr -d '"')
-          device=$(jq .response.data.data["${item}"].player "${historyRawFile}" | tr -d '"')
-          title=$(jq .response.data.data["${item}"].full_title "${historyRawFile}" | tr -d '"')
-          titleYear=$(jq .response.data.data["${item}"].year "${historyRawFile}" | tr -d '"')
+          platform=$(jq -r .response.data.data["${item}"].platform "${historyRawFile}")
+          device=$(jq -r .response.data.data["${item}"].player "${historyRawFile}")
+          title=$(jq -r .response.data.data["${item}"].full_title "${historyRawFile}")
+          titleYear=$(jq -r .response.data.data["${item}"].year "${historyRawFile}")
           playing=$(echo "${title} (${titleYear})")
-          transcodeDecision=$(jq .response.data.data["${item}"].transcode_decision "${historyRawFile}" | tr -d '"')
+          transcodeDecision=$(jq -r .response.data.data["${item}"].transcode_decision "${historyRawFile}")
           playbackType=$(echo "${transcodeDecision}" | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
-          startTime=$(jq .response.data.data["${item}"].started "${historyRawFile}" | tr -d '"')
-          stoppedTime=$(jq .response.data.data["${item}"].stopped "${historyRawFile}" | tr -d '"')
+          startTime=$(jq -r .response.data.data["${item}"].started "${historyRawFile}")
+          stoppedTime=$(jq -r .response.data.data["${item}"].stopped "${historyRawFile}")
           duration=$((stoppedTime - startTime))
           friendlyDuration=$(echo "[$((duration / 60))m $((duration % 60))s]")
           echo -e "${bold}${playing}${endColor}" >> "${historyDataFile}"
           echo -e "${playbackType} - ${platform} - ${device} ${friendlyDuration}" >> "${historyDataFile}"
         elif [[ ${mediaType} == 'episode' ]]; then
-          platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" | tr -d '"')
-          device=$(jq .response.data.data["${item}"].player "${historyRawFile}" | tr -d '"')
-          parentTitle=$(jq .response.data.data["${item}"].parent_media_index "${historyRawFile}")
+          platform=$(jq -r .response.data.data["${item}"].platform "${historyRawFile}")
+          device=$(jq -r .response.data.data["${item}"].player "${historyRawFile}")
+          parentTitle=$(jq -r .response.data.data["${item}"].parent_media_index "${historyRawFile}")
           seasonNum=$(printf "%02d" ${parentTitle})
-          mediaIndex=$(jq .response.data.data["${item}"].media_index "${historyRawFile}")
+          mediaIndex=$(jq -r .response.data.data["${item}"].media_index "${historyRawFile}")
           episodeNum=$(printf "%02d" ${mediaIndex})
-          title=$(jq .response.data.data["${item}"].full_title "${historyRawFile}" | tr -d '"')
+          title=$(jq -r .response.data.data["${item}"].full_title "${historyRawFile}")
           playing=$(echo "${title} - S${seasonNum}E${episodeNum}")
-          transcodeDecision=$(jq .response.data.data["${item}"].transcode_decision "${historyRawFile}" | tr -d '"')
+          transcodeDecision=$(jq -r .response.data.data["${item}"].transcode_decision "${historyRawFile}")
           playbackType=$(echo "${transcodeDecision}" | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
-          startTime=$(jq .response.data.data["${item}"].started "${historyRawFile}" | tr -d '"')
-          stoppedTime=$(jq .response.data.data["${item}"].stopped "${historyRawFile}" | tr -d '"')
+          startTime=$(jq -r .response.data.data["${item}"].started "${historyRawFile}")
+          stoppedTime=$(jq -r .response.data.data["${item}"].stopped "${historyRawFile}")
           duration=$((stoppedTime - startTime))
           friendlyDuration=$(echo "[$((duration / 60))m $((duration % 60))s]")
           echo -e "${bold}${playing}${endColor}" >> "${historyDataFile}"
           echo -e "${playbackType} - ${platform} - ${device} ${friendlyDuration}" >> "${historyDataFile}"
         elif [[ ${mediaType} == 'track' ]]; then
-          platform=$(jq .response.data.data["${item}"].platform "${historyRawFile}" | tr -d '"')
-          device=$(jq .response.data.data["${item}"].player "${historyRawFile}" | tr -d '"')
-          playing=$(jq .response.data.data["${item}"].full_title "${historyRawFile}" | tr -d '"')
-          transcodeDecision=$(jq .response.data.data["${item}"].transcode_decision "${historyRawFile}" | tr -d '"')
+          platform=$(jq -r .response.data.data["${item}"].platform "${historyRawFile}")
+          device=$(jq -r .response.data.data["${item}"].player "${historyRawFile}")
+          playing=$(jq -r .response.data.data["${item}"].full_title "${historyRawFile}")
+          transcodeDecision=$(jq -r .response.data.data["${item}"].transcode_decision "${historyRawFile}")
           playbackType=$(echo "${transcodeDecision}" | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')
-          startTime=$(jq .response.data.data["${item}"].started "${historyRawFile}" | tr -d '"')
-          stoppedTime=$(jq .response.data.data["${item}"].stopped "${historyRawFile}" | tr -d '"')
+          startTime=$(jq -r .response.data.data["${item}"].started "${historyRawFile}")
+          stoppedTime=$(jq -r .response.data.data["${item}"].stopped "${historyRawFile}")
           duration=$((stoppedTime - startTime))
           friendlyDuration=$(echo "[$((duration / 60))m $((duration % 60))s]")
           echo -e "${bold}${playing}${endColor}" >> "${historyDataFile}"
@@ -2209,7 +2217,7 @@ playback_history() {
 
 # Function to create list of request results
 create_request_results_list() {
-  jq .results[].seriesName "${requestResultsRawFile}" | tr -d '"' > "${requestsResultsFile}"
+  jq -r .results[].seriesName "${requestResultsRawFile}" > "${requestsResultsFile}"
   requestsResults=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'requestsResults=($(cat "${requestsResultsFile}"))'
   for ((i = 0; i < ${#requestsResults[@]}; ++i)); do
@@ -2248,7 +2256,7 @@ prompt_for_request_selection() {
     submit_request_menu
   else
     requestsResultsArrayElement=$((requestsResultsSelection - 1))
-    selectedRequestsResult=$(jq .results["${requestsResultsArrayElement}"].seriesName "${requestResultsRawFile}" | tr -d '"')
+    selectedRequestsResult=$(jq -r .results["${requestsResultsArrayElement}"].seriesName "${requestResultsRawFile}")
   fi
 }
 
@@ -2279,8 +2287,8 @@ submit_requests() {
     echo ''
     submit_request_menu
   fi
-  mediaID=$(jq .results["${requestsResultsArrayElement}"].id "${requestResultsRawFile}")
-  mediaTitle=$(jq .results["${requestsResultsArrayElement}"].seriesName "${requestResultsRawFile}" | tr -d '"')
+  mediaID=$(jq -r .results["${requestsResultsArrayElement}"].id "${requestResultsRawFile}")
+  mediaTitle=$(jq -r .results["${requestsResultsArrayElement}"].seriesName "${requestResultsRawFile}")
   echo 'Submitting your request...'
   submitRequestStatusCode=$(curl -s -o "${submitRequestResultFile}" -w "%{http_code}" -L -X POST "${userMBURL}${endpoint}" \
     -H "Content-Type: application/x-www-form-urlencoded" \
@@ -2294,7 +2302,7 @@ submit_requests() {
     echo ''
     requests_menu
   elif [[ ${submitRequestStatusCode} == '500' ]]; then
-    submitRequestResponse=$(jq .message "${submitRequestResultFile}" | tr -d '"')
+    submitRequestResponse=$(jq -r .message "${submitRequestResultFile}")
     if [[ ${submitRequestResponse} == 'Item Exists' ]]; then
       echo -e "${red}${mediaTitle} already exists on Plex!${endColor}"
       echo ''
@@ -2309,7 +2317,7 @@ submit_requests() {
 
 # Function to create existing requests list
 create_existing_requests_list() {
-  jq .[].title "${currentRequestsRawFile}" | tr -d '"' > "${currentRequestsTitlesFile}"
+  jq -r .[].title "${currentRequestsRawFile}" > "${currentRequestsTitlesFile}"
   currentRequests=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'currentRequests=($(cat "${currentRequestsTitlesFile}"))'
   for ((i = 0; i < ${#currentRequests[@]}; ++i)); do
@@ -2338,10 +2346,10 @@ prompt_for_request_to_manage() {
     requests_menu
   else
     manageRequestArrayElement=$((manageRequestSelection - 1))
-    selectedRequestTitle=$(jq .["${manageRequestArrayElement}"].title "${currentRequestsRawFile}" | tr -d '"')
-    selectedRequestID=$(jq .["${manageRequestArrayElement}"]._id "${currentRequestsRawFile}" | tr -d '"')
-    selectedRequestUser=$(jq .["${manageRequestArrayElement}"].username "${currentRequestsRawFile}" | tr -d '"')
-    selectedRequestDate=$(jq .["${manageRequestArrayElement}"].dateAdded "${currentRequestsRawFile}" | tr -d '"' | cut -c1-10)
+    selectedRequestTitle=$(jq -r .["${manageRequestArrayElement}"].title "${currentRequestsRawFile}")
+    selectedRequestID=$(jq -r .["${manageRequestArrayElement}"]._id "${currentRequestsRawFile}")
+    selectedRequestUser=$(jq -r .["${manageRequestArrayElement}"].username "${currentRequestsRawFile}")
+    selectedRequestDate=$(jq -r .["${manageRequestArrayElement}"].dateAdded "${currentRequestsRawFile}" | cut -c1-10)
   fi
 }
 
@@ -2434,8 +2442,8 @@ search_shows() {
       curl -s -L -X GET "${userMBURL}${endpoint}${convertedSearchString}" \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq '.Hub[] | select(.title=="Shows")'.Metadata["${result}"] > "${showSearchResultsRawFile}"
-      showName=$(jq .title "${showSearchResultsRawFile}" | tr -d '"')
-      showYear=$(jq .year "${showSearchResultsRawFile}")
+      showName=$(jq -r .title "${showSearchResultsRawFile}")
+      showYear=$(jq -r .year "${showSearchResultsRawFile}")
       echo "${showName} (${showYear})" >> "${showSearchResults}"
     done
     echo ''
@@ -2458,12 +2466,12 @@ search_episodes() {
       curl -s -L -X GET "${userMBURL}${endpoint}${convertedSearchString}" \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq '.Hub[] | select(.title=="Episodes")'.Metadata["${result}"] > "${episodeSearchResultsRawFile}"
-      showName=$(jq .grandparentTitle "${episodeSearchResultsRawFile}" | tr -d '"')
-      showYear=$(jq .year "${episodeSearchResultsRawFile}")
-      episodeTitle=$(jq .title "${episodeSearchResultsRawFile}")
-      parentIndex=$(jq .parentIndex "${episodeSearchResultsRawFile}")
+      showName=$(jq -r .grandparentTitle "${episodeSearchResultsRawFile}")
+      showYear=$(jq -r .year "${episodeSearchResultsRawFile}")
+      episodeTitle=$(jq -r .title "${episodeSearchResultsRawFile}")
+      parentIndex=$(jq -r .parentIndex "${episodeSearchResultsRawFile}")
       seasonNum=$(printf "%02d" ${parentIndex})
-      mediaIndex=$(jq .index "${episodeSearchResultsRawFile}")
+      mediaIndex=$(jq -r .index "${episodeSearchResultsRawFile}")
       episodeNum=$(printf "%02d" ${mediaIndex})
       echo "${showName} (${showYear}) - S${seasonNum}E${episodeNum} - ${episodeTitle}" >> "${episodeSearchResults}"
     done
@@ -2493,8 +2501,8 @@ search_movies() {
       curl -s -L -X GET "${userMBURL}${endpoint}${convertedSearchString}" \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq '.Hub[] | select(.title=="Movies")'.Metadata["${result}"] > "${movieSearchResultsRawFile}"
-      movieName=$(jq .title "${movieSearchResultsRawFile}" | tr -d '"')
-      movieYear=$(jq .year "${movieSearchResultsRawFile}")
+      movieName=$(jq -r .title "${movieSearchResultsRawFile}")
+      movieYear=$(jq -r .year "${movieSearchResultsRawFile}")
       echo "${movieName} (${movieYear})" >> "${movieSearchResults}"
     done
     echo ''
@@ -2517,7 +2525,7 @@ search_artists() {
       curl -s -L -X GET "${userMBURL}${endpoint}${convertedSearchString}" \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq '.Hub[] | select(.title=="Artists")'.Metadata["${result}"] > "${artistSearchResultsRawFile}"
-      artistName=$(jq .title "${artistSearchResultsRawFile}" | tr -d '"')
+      artistName=$(jq -r .title "${artistSearchResultsRawFile}")
       echo "${artistName}" >> "${artistSearchResults}"
     done
     echo ''
@@ -2540,8 +2548,8 @@ search_albums() {
       curl -s -L -X GET "${userMBURL}${endpoint}${convertedSearchString}" \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq '.Hub[] | select(.title=="Albums")'.Metadata["${result}"] > "${albumSearchResultsRawFile}"
-      artistName=$(jq .parentTitle "${albumSearchResultsRawFile}" | tr -d '"')
-      albumName=$(jq .title "${albumSearchResultsRawFile}" | tr -d '"')
+      artistName=$(jq -r .parentTitle "${albumSearchResultsRawFile}")
+      albumName=$(jq -r .title "${albumSearchResultsRawFile}")
       echo "${artistName} - ${albumName}" >> "${albumSearchResults}"
     done
     echo ''
@@ -2564,9 +2572,9 @@ search_songs() {
       curl -s -L -X GET "${userMBURL}${endpoint}${convertedSearchString}" \
         -H "${mbClientID}" \
         -H "Authorization: Bearer ${plexServerMBToken}" | jq '.Hub[] | select(.title=="Tracks")'.Metadata["${result}"] > "${songSearchResultsRawFile}"
-      artistName=$(jq .grandparentTitle "${songSearchResultsRawFile}" | tr -d '"')
-      albumName=$(jq .parentTitle "${songSearchResultsRawFile}" | tr -d '"')
-      songName=$(jq .title "${songSearchResultsRawFile}" | tr -d '"')
+      artistName=$(jq -r .grandparentTitle "${songSearchResultsRawFile}")
+      albumName=$(jq -r .parentTitle "${songSearchResultsRawFile}")
+      songName=$(jq -r .title "${songSearchResultsRawFile}")
       echo "${artistName} - ${albumName} - ${songName}" >> "${songSearchResults}"
     done
     echo ''
@@ -2614,7 +2622,7 @@ configure_request_limits() {
     requestLimitCheckResponse=$(curl -s -L -X PUT "${userMBURL}configure/${endpoint}" \
       -H "${mbClientID}" \
       -H "Authorization: Bearer ${plexServerMBToken}" \
-      --data "limitDays=${limitCycle}&limitAmount=${limitAmount}" | jq .message | tr -d '"')
+      --data "limitDays=${limitCycle}&limitAmount=${limitAmount}" | jq -r .message)
     if [[ ${requestLimitCheckResponse} == 'success' ]]; then
       echo 'Saving the new request limits to MediaButler...'
       curl -s -L -X POST "${userMBURL}configure/${endpoint}" \
@@ -2641,7 +2649,7 @@ create_mb_users_list() {
   curl -s -L -X GET "${userMBURL}${endpoint}" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" | jq . > "${rawUsersFile}"
-  jq .[].username "${rawUsersFile}" | tr -d '"' > "${usernamesFile}"
+  jq -r .[].username "${rawUsersFile}" > "${usernamesFile}"
   usersList=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'usersList=($(cat "${usernamesFile}"))'
   for ((i = 0; i < ${#usersList[@]}; ++i)); do
@@ -2670,7 +2678,7 @@ prompt_for_mb_user() {
     endpoint_menu
   else
     userArrayElement=$((userSelection - 1))
-    selectedUser=$(jq .["${userArrayElement}"].username "${rawUsersFile}" | tr -d '"')
+    selectedUser=$(jq -r .["${userArrayElement}"].username "${rawUsersFile}")
     permissions_menu
   fi
 }
@@ -2681,7 +2689,7 @@ create_mb_perms_list() {
   curl -s -L -X GET "${userMBURL}${endpoint}" \
     -H "${mbClientID}" \
     -H "Authorization: Bearer ${plexServerMBToken}" | jq . > "${rawMBPermsListFile}"
-  jq .permissions[] "${rawMBPermsListFile}" | tr -d '"' > "${mbPermsListFile}"
+  jq -r .permissions[] "${rawMBPermsListFile}" > "${mbPermsListFile}"
   mbPermsList=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'mbPermsList=($(cat "${mbPermsListFile}"))'
   for ((i = 0; i < ${#mbPermsList[@]}; ++i)); do
@@ -2692,8 +2700,8 @@ create_mb_perms_list() {
 
 # Function to create numbered list of user's current MediaButler permissions
 create_user_existing_perms_list() {
-  jq .["${userArrayElement}"] "${rawUsersFile}" > "${rawUserDataFile}"
-  jq .permissions[] "${rawUserDataFile}" | tr -d '"' > "${userPermsListFile}"
+  jq -r .["${userArrayElement}"] "${rawUsersFile}" > "${rawUserDataFile}"
+  jq -r .permissions[] "${rawUserDataFile}" > "${userPermsListFile}"
   userPermsList=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'userPermsList=($(cat "${userPermsListFile}"))'
   for ((i = 0; i < ${#userPermsList[@]}; ++i)); do
@@ -2850,12 +2858,12 @@ main() {
     sed -i.bak "${plexCredsStatusLineNum} s/plexCredsStatus='[^']*'/plexCredsStatus='ok'/" "${scriptname}"
     sed -i.bak "${plexServerStatusLineNum} s/plexServerStatus='[^']*'/plexServerStatus='ok'/" "${scriptname}"
     sed -i.bak "${mbURLStatusLineNum} s/mbURLStatus='[^']*'/mbURLStatus='ok'/" "${scriptname}"
-    plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" | jq .value | tr -d '"')
-    selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" | jq .value | tr -d '"')
-    plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" | jq .value | tr -d '"')
-    plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" | jq .value | tr -d '"')
-    userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" | jq .value | tr -d '"')
-    isAdmin=$(jq '.data[] | select(.name=="isAdmin")' "${jsonEnvFile}" | jq .value | tr -d '"')
+    plexToken=$(jq '.data[] | select(.name=="plexToken")' "${jsonEnvFile}" | jq -r .value)
+    selectedPlexServerName=$(jq '.data[] | select(.name=="serverName")' "${jsonEnvFile}" | jq -r .value)
+    plexServerMBToken=$(jq '.data[] | select(.name=="mbToken")' "${jsonEnvFile}" | jq -r .value)
+    plexServerMachineID=$(jq '.data[] | select(.name=="machineId")' "${jsonEnvFile}" | jq -r .value)
+    userMBURL=$(jq '.data[] | select(.name=="mbURL")' "${jsonEnvFile}" | jq -r .value)
+    isAdmin=$(jq '.data[] | select(.name=="isAdmin")' "${jsonEnvFile}" | jq -r .value)
   elif [[ ! -f ${jsonEnvFile} ]]; then
     reset_plex
     get_plex_creds
