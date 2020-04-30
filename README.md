@@ -2,7 +2,7 @@
 
 # MediaButler Linux CLI Utility
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bf0b65fe02504b60a2439070c45dc3f8)](https://www.codacy.com/app/christronyxyocum/CLI-Linux?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MediaButler/CLI-Linux&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/76a68b3b9e314d728be3f31d18cbd6f3)](https://www.codacy.com/gh/MediaButler/CLI-Linux?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MediaButler/CLI-Linux&amp;utm_campaign=Badge_Grade)
 [![Chat on Discord](https://img.shields.io/discord/379374148436230144.svg)](https://discord.gg/nH9t5sm)
 [![made-with-bash](https://img.shields.io/badge/Made%20with-Bash-1f425f.svg)](https://www.gnu.org/software/bash/)
 [![](https://badge-size.herokuapp.com/MediaButler/CLI-Linux/master/mb-linux-cli-utility.sh)](https://github.com/MediaButler/CLI-Linux/blob/master/mb-linux-cli-utility.sh)
@@ -53,4 +53,3 @@ You can also run the client inside a docker environment by running
 ## Support
 
 Further help and support using this script can be found in [our Wiki](https://github.com/MediaButler/Wiki/wiki) or drop by our [Discord Server](https://discord.gg/nH9t5sm)
-
