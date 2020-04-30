@@ -1,35 +1,150 @@
-variables:
-  DOCKER_DRIVER: overlay2
 stages:
   - build
   - test
   - deploy
+  - buildx
+  - manifest
 services:
-  - docker:dind
-build_docker:
-  image: docker:stable
-  stage: build
-  before_script:
-  - docker info
-  script:
-    - docker build -t mediabutler/cli-linux:${CI_COMMIT_REF_NAME} .
-test_docker:
-  stage: test
-  script:
-    - echo "Should have tested Docker"
-deploy_docker_int:
+- docker:19.03-dind
+variables:
+  IMAGEINT: reg.mediabutler.app/mediabutler/linux-cli-utility
+  IMAGEEXT: mediabutler/linux-cli-utility
+  TAG: (if [ "${CI_COMMIT_TAG}" == "" ]; then "latest"; else ${CI_COMMIT_TAG}; fi);
+  DOCKER_CLI_EXPERIMENTAL: enabled
+  DOCKER_BUILDKIT: 1
+  DOCKER_TLS_CERTDIR: "/certs"
+deploy_docker_int_amd64:
   stage: deploy
   before_script:
     - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.app
   script:
-    - docker build -t reg.mediabutler.app/mediabutler/linux-cli-utility:${CI_COMMIT_REF_NAME} .
-    - docker push reg.mediabutler.app/mediabutler/linux-cli-utility:${CI_COMMIT_REF_NAME}
-deploy_docker_ext:
+    - docker build -t ${IMAGEINT}:amd64-${CI_COMMIT_REF_NAME} .
+    - docker push ${IMAGEINT}:amd64-${CI_COMMIT_REF_NAME}
+deploy_docker_int_arm32v6:
+  stage: deploy
+  before_script:
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.app
+  script:
+    - docker build --build-arg IMAGE_ARCH=arm32v6 -t ${IMAGEINT}:arm32v6-${CI_COMMIT_REF_NAME} .
+    - docker push ${IMAGEINT}:arm32v6-${CI_COMMIT_REF_NAME}
+deploy_docker_int_arm32v7:
+  stage: deploy
+  before_script:
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.app
+  script:
+    - docker build --build-arg IMAGE_ARCH=arm32v7 -t ${IMAGEINT}:arm32v7-${CI_COMMIT_REF_NAME} .
+    - docker push ${IMAGEINT}:arm32v7-${CI_COMMIT_REF_NAME}
+deploy_docker_int_arm64v8:
+  stage: deploy
+  before_script:
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.app
+  script:
+    - docker build --build-arg IMAGE_ARCH=arm64v8 -t ${IMAGEINT}:arm64v8-${CI_COMMIT_REF_NAME} .
+    - docker push ${IMAGEINT}:arm64v8-${CI_COMMIT_REF_NAME}
+deploy_docker_int_i386:
+  stage: deploy
+  before_script:
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.app
+  script:
+    - docker build --build-arg IMAGE_ARCH=i386 -t ${IMAGEINT}:i386-${CI_COMMIT_REF_NAME} .
+    - docker push ${IMAGEINT}:i386-${CI_COMMIT_REF_NAME}
+buildx:
+  image: docker:19.03-git
+  stage: buildx
+  variables:
+    GIT_STRATEGY: none
+  artifacts:
+    paths:
+      - buildx
+    expire_in: 1 hour
+  services:
+    - docker:19.03-dind
+  script:
+    - export DOCKER_BUILDKIT=1
+    - git clone git://github.com/docker/buildx ./docker-buildx
+    - docker build --platform=local -o . ./docker-buildx
+manifest_int:
+  stage: manifest
+  image: docker:19.03.8
+  services:
+    - name: docker:19.03-dind
+      command: ["--experimental"]
+  before_script:
+    - export DOCKER_BUILDKIT=1 DOCKER_CLI_EXPERIMENTAL=enabled
+    - docker info
+    - docker version
+    - mkdir -p ~/.docker/cli-plugins
+    - mv buildx ~/.docker/cli-plugins/docker-buildx
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.app
+  script:
+    - docker buildx install
+    - docker buildx create --name buildbot --use buildbot
+    - docker buildx inspect --bootstrap
+    - docker buildx ls
+#    - docker buildx create --use builder
+    - docker buildx build --progress plain --platform linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/arm/v6 .
+deploy_docker_ext_amd64:
   stage: deploy
   before_script:
     - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
   script:
-    - docker build -t mediabutler/cli-linux:latest .
-    - docker push mediabutler/cli-linux:latest
-  only: 
+    - docker build -t ${IMAGEEXT}:amd64-latest .
+    - docker push ${IMAGEEXT}:amd64-latest
+  only:
+    - master
+deploy_docker_ext_arm32v6:
+  stage: deploy
+  before_script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+  script:
+    - docker build --build-arg IMAGE_ARCH=arm32v6 -t ${IMAGEEXT}:arm32v6-latest .
+    - docker push ${IMAGEEXT}:arm32v6-latest
+  only:
+    - master
+deploy_docker_ext_arm32v7:
+  stage: deploy
+  before_script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+  script:
+    - docker build --build-arg IMAGE_ARCH=arm32v7 -t ${IMAGEEXT}:arm32v7-latest .
+    - docker push ${IMAGEEXT}:arm32v7-latest
+  only:
+    - master
+deploy_docker_ext_arm64v8:
+  stage: deploy
+  before_script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+  script:
+    - docker build --build-arg IMAGE_ARCH=arm64v8 -t ${IMAGEEXT}:arm64v8-latest .
+    - docker push ${IMAGEEXT}:arm64v8-latest
+  only:
+    - master
+deploy_docker_ext_i386:
+  stage: deploy
+  before_script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+  script:
+    - docker build --build-arg IMAGE_ARCH=i386 -t ${IMAGEEXT}:i386-latest .
+    - docker push ${IMAGEEXT}:i386-latest
+  only:
+    - master
+manifest_ext:
+  stage: manifest
+  before_script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+  script:
+    - docker pull ${IMAGEEXT}:amd64-latest
+    - docker pull ${IMAGEEXT}:arm32v6-latest
+    - docker pull ${IMAGEEXT}:arm32v7-latest
+    - docker pull ${IMAGEEXT}:arm64v8-latest
+    - docker pull ${IMAGEEXT}:i386-latest
+    - docker manifest create ${IMAGEEXT}:latest ${IMAGEEXT}:amd64-latest ${IMAGEEXT}:arm32v6-latest ${IMAGEEXT}:arm32v7-latest ${IMAGEEXT}:arm64v8-latest ${IMAGEEXT}:i386-latest
+    - docker manifest annotate ${IMAGEEXT}:latest ${IMAGEEXT}:amd64-latest --os linux --arch amd64
+    - docker manifest annotate ${IMAGEEXT}:latest ${IMAGEEXT}:arm32v6-latest --os linux --arch arm --variant v6
+    - docker manifest annotate ${IMAGEEXT}:latest ${IMAGEEXT}:arm32v7-latest --os linux --arch arm --variant v7
+    - docker manifest annotate ${IMAGEEXT}:latest ${IMAGEEXT}:arm64v8-latest --os linux --arch arm64 --variant armv8
+    - docker manifest annotate ${IMAGEEXT}:latest ${IMAGEEXT}:i386-latest --os linux --arch 386
+    - docker manifest push ${IMAGEEXT}:latest
+  only:
     - master
