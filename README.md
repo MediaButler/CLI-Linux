@@ -28,30 +28,26 @@ As the [Server](https://github.com/MediaButler/Server) only supports authenticat
 
 We have done everything in our power to limit the number of dependencies that this application requires and, for most Linux users, they should already be installed. However, in case you do not, you will need the following packages in order to run the utility:
 
--   bash
--   curl
--   jq
--   grep
--   sed
+    bash
+    curl
+    jq
+    grep
+    sed
 
 ## Installing and Using
 
 The simplest method would be to either download the file manually or clone this git repository, marking the file as executable, and running it.
 
-    ```bash
     git clone https://github.com/MediaButler/CLI-Linux.git
     cd CLI-Linux
     chmod +x mb-linux-cli-utility.sh
     ./mb-linux-cli-utility.sh
-    ```
 
 ## Docker
 
 You can also run the client inside a docker environment by running
 
-    ```bash
     docker run --rm -it mediabutler/cli-linux
-    ```
 
 ## Support
 
