@@ -43,8 +43,8 @@ tempDir='/tmp/mb_setup/'
 spacePattern="( |\')"
 integerPattern='^-?[0-9]+$'
 plexCredsFile="${tempDir}plex_creds_check.txt"
-plexServersOwnerFile="${tempDir}plex_server_owners.txt"
-plexServersFriendsFile="${tempDir}plex_server_friends.txt"
+#plexServersOwnerFile="${tempDir}plex_server_owners.txt"
+#plexServersFriendsFile="${tempDir}plex_server_friends.txt"
 envFile="${tempDir}envFile.txt"
 jsonEnvFile='data.json'
 plexTokenFile="${tempDir}plex_token.txt"
@@ -511,13 +511,17 @@ get_plex_token() {
 # Function to create list of Plex servers the user owns
 create_plex_servers_list() {
   endpoint='plex'
-  jq '.servers[] | select(.owner==true)' "${plexCredsFile}" | jq -r .name > "${plexServersOwnerFile}"
-  jq '.servers[] | select(.owner!=true)' "${plexCredsFile}" | jq -r .name > "${plexServersFriendsFile}"
+  #jq '.servers[] | select(.owner==true)' "${plexCredsFile}" | jq -r .name > "${plexServersOwnerFile}"
+  plexServersOwner=$(jq '.servers[] | select(.owner==true)' "${plexCredsFile}" | jq -r .name)
+  #jq '.servers[] | select(.owner!=true)' "${plexCredsFile}" | jq -r .name > "${plexServersFriendsFile}"
+  plexServersFriends=$(jq '.servers[] | select(.owner!=true)' "${plexCredsFile}" | jq -r .name)
   true > "${plexServersFile}"
-  for server in $(cat "${plexServersOwnerFile}"); do
+  #for server in $(cat "${plexServersOwnerFile}"); do
+  for server in $(echo "${plexServersOwner}"); do
     echo "${server} (Owner)" >> "${plexServersFile}"
   done
-  cat "${plexServersFriendsFile}" >> "${plexServersFile}"
+  #cat "${plexServersFriendsFile}" >> "${plexServersFile}"
+  echo "${plexServersFriends}" >> "${plexServersFile}"
   plexServers=''
   IFS=$'\r\n' GLOBIGNORE='*' command eval 'plexServers=($(cat "${plexServersFile}"))'
   for ((i = 0; i < ${#plexServers[@]}; ++i)); do
@@ -749,12 +753,12 @@ check_endpoint_configs() {
 
 # Function to create environment variables file for persistence
 create_env_file() {
-  echo "plexToken       ${plexToken}" > "${envFile}"
-  echo "serverName      ${selectedPlexServerName}" >> "${envFile}"
-  echo "mbToken         ${plexServerMBToken}" >> "${envFile}"
-  echo "machineId       ${plexServerMachineID}" >> "${envFile}"
-  echo "mbURL           ${userMBURL}" >> "${envFile}"
-  echo "admin           ${isAdmin}" >> "${envFile}"
+  echo "plexToken	${plexToken}" > "${envFile}"
+  echo "serverName	${selectedPlexServerName}" >> "${envFile}"
+  echo "mbToken	${plexServerMBToken}" >> "${envFile}"
+  echo "machineId	${plexServerMachineID}" >> "${envFile}"
+  echo "mbURL	${userMBURL}" >> "${envFile}"
+  echo "admin	${isAdmin}" >> "${envFile}"
   jq '. | split("\n") | map( split("\t") | {name: .[0], value: .[1]} ) | {data: .} ' -R -s "${envFile}" > "${jsonEnvFile}"
 }
 
