@@ -1620,7 +1620,7 @@ setup_radarr() {
     set +e
     radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}")
     #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
-    radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | jq .[].name | grep -ci radarr)
+    radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${radarrAPIKey}" | jq .[].name | grep -ci radarr)
     radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -c version)
     set -e
     while [[ ${radarrAPIKeyStatus} == 'invalid' ]] || [[ ${radarrURLStatus} == 'invalid' ]]; do
@@ -1638,7 +1638,7 @@ setup_radarr() {
         set +e
         radarrURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}")
         #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
-        radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | jq .[].name | grep -ci radarr)
+        radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${radarrAPIKey}" | jq .[].name | grep -ci radarr)
         radarrAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -c version)
         set -e
       elif [[ ${radarrURLCheckResponse} == '200' ]] && [[ ${radarrAppCheckResponse} -ge 1 ]] && [[ ${radarrAPITestResponse} -ge 1 ]]; then
@@ -1736,7 +1736,7 @@ setup_radarr() {
     set +e
     radarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}")
     #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
-    radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | jq .[].name | grep -ci radarr)
+    radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${radarr4kAPIKey}" | jq .[].name | grep -ci radarr)
     radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | grep -c version)
     set -e
     while [[ ${radarr4kAPIKeyStatus} == 'invalid' ]] || [[ ${radarr4kURLStatus} == 'invalid' ]]; do
@@ -1754,7 +1754,7 @@ setup_radarr() {
         set +e
         radarr4kURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}")
         #radarrAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarrAPIKey}" | grep -i startup | grep -ci radarr)
-        radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | jq .[].name | grep -ci radarr)
+        radarr4kAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${radarr4kAPIKey}" | jq .[].name | grep -ci radarr)
         radarr4kAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr4kAPIKey}" | grep -c version)
         set -e
       elif [[ ${radarr4kURLCheckResponse} == '200' ]] && [[ ${radarr4kAppCheckResponse} -ge 1 ]] && [[ ${radarr4kAPITestResponse} -ge 1 ]]; then
@@ -1851,7 +1851,8 @@ setup_radarr() {
     echo 'Testing that the provided Radarr 3D URL and API Key are valid...'
     set +e
     radarr3dURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}")
-    radarr3dAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" | grep -i startup | grep -ci radarr)
+    #radarr3dAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" | grep -i startup | grep -ci radarr)
+    radarr3dAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${radarr3dAPIKey}" | grep -i startup | grep -ci radarr)
     radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" | grep -c version)
     set -e
     while [[ ${radarr3dAPIKeyStatus} == 'invalid' ]] || [[ ${radarr3dURLStatus} == 'invalid' ]]; do
@@ -1868,7 +1869,8 @@ setup_radarr() {
         echo 'Testing that the provided Radarr 3D URL and API Key are valid...'
         set +e
         radarr3dURLCheckResponse=$(curl -I -w "%{http_code}" -sI -o /dev/null --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}")
-        radarr3dAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" | grep -i startup | grep -ci radarr)
+        #radarr3dAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" | grep -i startup | grep -ci radarr)
+        radarr3dAppCheckResponse=$(curl -sL --connect-timeout 10 "${convertedURL}api/system/backup" -H "X-Api-Key: ${radarr3dAPIKey}" | grep -i startup | grep -ci radarr)
         radarr3dAPITestResponse=$(curl -s -X GET "${convertedURL}api/system/status" -H "X-Api-Key: ${radarr3dAPIKey}" | grep -c version)
         set -e
       elif [[ ${radarr3dURLCheckResponse} == '200' ]] && [[ ${radarr3dAppCheckResponse} -ge 1 ]] && [[ ${radarr3dAPITestResponse} -ge 1 ]]; then
